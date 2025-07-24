@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alphagenome-proxy
+  labels:
+    app: alphagenome-proxy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: alphagenome-proxy
+  template:
+    metadata:
+      labels:
+        app: alphagenome-proxy
+    spec:
+      containers:
+        - name: alphagenome-proxy
+          image: alphagenome-proxy:latest
+          ports:
+            - containerPort: 50051
+              name: grpc
+          env:
+            - name: JSON_SERVICE_BASE_URL
+              value: "https://api.alphagenome.google.com"
+            - name: ALPHAGENOME_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alphagenome-api-key
+                  key: api-key
+            - name: API_KEY_HEADER
+              value: "Authorization"
+            - name: API_KEY_PREFIX
+              value: "Bearer "
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alphagenome-proxy-service
+  labels:
+    app: alphagenome-proxy
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 50051
+      targetPort: 50051
+      protocol: TCP
+      name: grpc
+  selector:
+    app: alphagenome-proxy
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alphagenome-api-key
+type: Opaque
+data:
+  api-key: <base64-encoded-api-key>
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: alphagenome-proxy-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: alphagenome-proxy
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alphagenome-proxy-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - alphagenome-proxy.example.com
+      secretName: alphagenome-tls
+  rules:
+    - host: alphagenome-proxy.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alphagenome-proxy-service
+                port:
+                  number: 50051 

@@ -1,0 +1,18 @@
+# Core dependencies
+grpcio==1.73.1
+grpcio-tools==1.73.1
+protobuf==6.31.1
+requests==2.31.0
+
+# Testing dependencies
+pytest==8.4.1
+pytest-mock==3.14.1
+absl-py==2.3.1
+
+# Optional: For manual testing
+flask==3.0.0
+
+# Development dependencies (optional)
+black==24.1.1
+flake8==7.0.0
+mypy==1.8.0 

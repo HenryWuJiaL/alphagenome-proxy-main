@@ -1,0 +1,88 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: alphagenome-proxy
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/memory: 512Mi
+        run.googleapis.com/cpu: 1
+        run.googleapis.com/startup-cpu-boost: "true"
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      containers:
+        - image: gcr.io/PROJECT_ID/alphagenome-proxy:latest
+          ports:
+            - containerPort: 50051
+          env:
+            - name: JSON_SERVICE_BASE_URL
+              value: "https://api.alphagenome.google.com"
+            - name: ALPHAGENOME_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alphagenome-api-key
+                  key: api-key
+            - name: API_KEY_HEADER
+              value: "Authorization"
+            - name: API_KEY_PREFIX
+              value: "Bearer "
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 50051
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 50051
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alphagenome-api-key
+type: Opaque
+data:
+  api-key: <base64-encoded-api-key>
+---
+apiVersion: autoscaling.knative.dev/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: alphagenome-proxy-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: alphagenome-proxy
+  minScale: 1
+  maxScale: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80 
