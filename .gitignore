@@ -20,11 +20,17 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
+# Virtual environments - 完全排除
 venv/
 env/
 ENV/
 .venv/
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Environment variables
 .env
@@ -78,4 +84,63 @@ test_*.py
 # Build artifacts
 *.pb.py
 *_pb2.py
-*_pb2_grpc.py 
+*_pb2_grpc.py
+
+# Large files and libraries
+*.dylib
+*.so
+*.dll
+*.exe
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+
+# Cache directories
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/ 
