@@ -7,7 +7,7 @@ services:
     ports:
       - "50051:50051"
     environment:
-      - JSON_SERVICE_BASE_URL=${JSON_SERVICE_BASE_URL:-http://127.0.0.1:8000}
+      - JSON_SERVICE_BASE_URL=${JSON_SERVICE_BASE_URL:-http://mock-json-service:8000}
       - ALPHAGENOME_API_KEY=${ALPHAGENOME_API_KEY:-}
       - API_KEY_HEADER=${API_KEY_HEADER:-Authorization}
       - API_KEY_PREFIX=${API_KEY_PREFIX:-Bearer }
@@ -28,14 +28,10 @@ services:
       - "8000:8000"
     working_dir: /app
     volumes:
-      - ./test_communication_proxy_manual.py:/app/test_communication_proxy_manual.py
+      - ./simple_mock_service.py:/app/simple_mock_service.py
     command: >
       sh -c "pip install flask &&
-             python -c '
-             from test_communication_proxy_manual import MockJSONService;
-             service = MockJSONService(port=8000);
-             service.app.run(host=\"0.0.0.0\", port=8000, debug=False)
-             '"
+             python simple_mock_service.py"
     environment:
       - FLASK_ENV=production
     restart: unless-stopped 
