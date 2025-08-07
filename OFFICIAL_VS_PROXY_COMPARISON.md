@@ -1,30 +1,30 @@
-# 🧬 官方客户端 vs 代理服务对比
+# Official Client vs Proxy Service Comparison
 
-## 📊 测试结果总结
+## Test Results Summary
 
-| 功能 | 官方客户端 | 代理服务 | 状态 |
-|------|------------|----------|------|
-| **连接** | ✅ 成功 | ✅ 成功 | 平手 |
-| **API 调用** | ✅ 成功 | ✅ 成功 | 平手 |
-| **响应时间** | 1.80秒 | 0.00秒 | 🏆 代理更快 |
-| **可视化** | ✅ 支持 | ❌ 不支持 | 🏆 官方更好 |
-| **易用性** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 🏆 官方更好 |
-| **部署复杂度** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🏆 代理更好 |
-| **成本** | 按使用付费 | 几乎免费 | 🏆 代理更好 |
+| Feature | Official Client | Proxy Service | Status |
+|---------|----------------|---------------|--------|
+| **Connection** | Success | Success | Tie |
+| **API Calls** | Success | Success | Tie |
+| **Response Time** | 1.80s | 0.00s | Proxy faster |
+| **Visualization** | Supported | Not supported | Official better |
+| **Ease of Use** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Official better |
+| **Deployment Complexity** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Proxy better |
+| **Cost** | Pay-per-use | Almost free | Proxy better |
 
-## 🎯 官方客户端示例
+## Official Client Example
 
-### 安装和设置
+### Installation and Setup
 
 ```bash
-# 安装官方客户端
+# Install official client
 pip install alphagenome
 
-# 设置 API Key
+# Set API Key
 export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 ```
 
-### 使用代码
+### Usage Code
 
 ```python
 from alphagenome.data import genome
@@ -32,11 +32,11 @@ from alphagenome.models import dna_client
 from alphagenome.visualization import plot_components
 import matplotlib.pyplot as plt
 
-# 创建客户端
+# Create client
 API_KEY = 'AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw'
 model = dna_client.create(API_KEY)
 
-# 定义区间和变异
+# Define interval and variant
 interval = genome.Interval(chromosome='chr22', start=35677410, end=36725986)
 variant = genome.Variant(
     chromosome='chr22',
@@ -45,7 +45,7 @@ variant = genome.Variant(
     alternate_bases='C',
 )
 
-# 预测变异
+# Predict variant
 outputs = model.predict_variant(
     interval=interval,
     variant=variant,
@@ -53,7 +53,7 @@ outputs = model.predict_variant(
     requested_outputs=[dna_client.OutputType.RNA_SEQ],
 )
 
-# 可视化结果
+# Visualize results
 plot_components.plot(
     [
         plot_components.OverlaidTracks(
@@ -70,29 +70,29 @@ plot_components.plot(
 plt.show()
 ```
 
-### 优点
+### Advantages
 
-- ✅ **完整功能** - 支持所有 API 功能
-- ✅ **可视化** - 内置绘图功能
-- ✅ **易用性** - 高级 API，简单易用
-- ✅ **文档完善** - 官方文档和示例
-- ✅ **类型安全** - 完整的类型提示
+- **Complete functionality** - Supports all API features
+- **Visualization** - Built-in plotting capabilities
+- **Ease of use** - High-level API, simple to use
+- **Well-documented** - Official documentation and examples
+- **Type safety** - Complete type hints
 
-### 缺点
+### Disadvantages
 
-- ❌ **成本较高** - 按使用付费
-- ❌ **依赖复杂** - 需要安装多个包
-- ❌ **网络依赖** - 需要稳定的网络连接
+- **Higher cost** - Pay-per-use
+- **Complex dependencies** - Requires installing multiple packages
+- **Network dependency** - Requires stable network connection
 
-## 🚀 代理服务示例
+## Proxy Service Example
 
-### 部署和设置
+### Deployment and Setup
 
 ```bash
-# 一键部署到 Google Cloud
+# One-click deployment to Google Cloud
 ./student-deploy-gcp.sh
 
-# 或手动部署
+# Or manual deployment
 gcloud run deploy alphagenome-proxy \
   --image gcr.io/YOUR_PROJECT_ID/alphagenome-proxy \
   --platform managed \
@@ -100,7 +100,7 @@ gcloud run deploy alphagenome-proxy \
   --allow-unauthenticated
 ```
 
-### 使用代码
+### Usage Code
 
 ```python
 import grpc
@@ -116,9 +116,9 @@ class AlphaGenomeProxyClient:
     def predict_variant(self, chromosome, position, ref_base, alt_base, 
                        start=None, end=None, organism=dna_model_pb2.ORGANISM_HOMO_SAPIENS,
                        ontology_terms=None, requested_outputs=None):
-        """预测变异影响"""
+        """Predict variant impact"""
         
-        # 设置默认值
+        # Set default values
         if start is None:
             start = position - 1000
         if end is None:
@@ -128,46 +128,46 @@ class AlphaGenomeProxyClient:
         if requested_outputs is None:
             requested_outputs = [dna_model_pb2.OUTPUT_TYPE_RNA_SEQ]
         
-        # 创建请求
+        # Create request
         request = dna_model_service_pb2.PredictVariantRequest()
         
-        # 设置区间
+        # Set interval
         request.interval.chromosome = chromosome
         request.interval.start = start
         request.interval.end = end
         
-        # 设置变异
+        # Set variant
         request.variant.chromosome = chromosome
         request.variant.position = position
         request.variant.reference_bases = ref_base
         request.variant.alternate_bases = alt_base
         
-        # 设置其他参数
+        # Set other parameters
         request.organism = organism
         
-        # 设置输出类型
+        # Set output types
         for output_type in requested_outputs:
             request.requested_outputs.append(output_type)
         
-        # 设置本体术语
+        # Set ontology terms
         for term in ontology_terms:
             ontology_term = request.ontology_terms.add()
             if term.startswith('UBERON:'):
                 ontology_term.ontology_type = dna_model_pb2.ONTOLOGY_TYPE_UBERON
                 ontology_term.id = int(term.split(':')[1])
         
-        # 发送请求
+        # Send request
         return self.stub.PredictVariant(request, timeout=60)
     
     def close(self):
-        """关闭连接"""
+        """Close connection"""
         self.channel.close()
 
-# 使用示例
+# Usage example
 client = AlphaGenomeProxyClient()
 
 try:
-    # 预测变异（对应官方示例）
+    # Predict variant (corresponds to official example)
     response = client.predict_variant(
         chromosome="chr22",
         position=36201698,
@@ -179,129 +179,129 @@ try:
         requested_outputs=[dna_model_pb2.OUTPUT_TYPE_RNA_SEQ]
     )
     
-    print("✅ 预测成功")
-    print(f"响应类型: {type(response)}")
+    print(" Predict successful")
+    print(f"Response type: {type(response)}")
     
-    # 分析响应数据
+    # Analyze response data
     if hasattr(response, 'output'):
-        print(f"输出类型: {response.output.output_type}")
+        print(f"Output type: {response.output.output_type}")
         if hasattr(response.output, 'data'):
-            print(f"数据形状: {response.output.data.shape}")
+            print(f"Data shape: {response.output.data.shape}")
     
 finally:
     client.close()
 ```
 
-### 优点
+### Advantages
 
-- ✅ **成本低** - 几乎免费（学生免费额度）
-- ✅ **响应快** - 0.00秒响应时间
-- ✅ **部署简单** - 一键部署到云端
-- ✅ **可定制** - 可以修改和扩展功能
-- ✅ **学习价值** - 了解底层实现
+- **Lower cost** - Almost free (student free tier)
+- **Fast response** - 0.00s response time
+- **Simple deployment** - One-click deployment to the cloud
+- **Customizable** - Can modify and extend functionality
+- **Learning value** - Understand underlying implementation
 
-### 缺点
+### Disadvantages
 
-- ❌ **功能有限** - 不支持可视化
-- ❌ **API 复杂** - 需要了解 gRPC 和 protobuf
-- ❌ **维护成本** - 需要自己维护服务
-- ❌ **文档较少** - 需要自己编写文档
+- **Limited functionality** - Does not support visualization
+- **Complex API** - Requires understanding gRPC and protobuf
+- **Maintenance cost** - Requires self-maintenance of the service
+- **Less documentation** - Requires self-writing documentation
 
-## 📈 性能对比
+## Performance Comparison
 
-### 响应时间
+### Response Time
 
-| 测试场景 | 官方客户端 | 代理服务 | 差异 |
-|----------|------------|----------|------|
-| PredictVariant | 1.80秒 | 0.00秒 | 🏆 代理快 100% |
-| ScoreInterval | 1.95秒 | 0.00秒 | 🏆 代理快 100% |
+| Test Scenario | Official Client | Proxy Service | Difference |
+|---------------|----------------|---------------|----------|
+| PredictVariant | 1.80s | 0.00s | Proxy faster 100% |
+| ScoreInterval | 1.95s | 0.00s | Proxy faster 100% |
 
-### 资源使用
+### Resource Usage
 
-| 指标 | 官方客户端 | 代理服务 |
-|------|------------|----------|
-| **内存使用** | 较高 | 较低 |
-| **CPU 使用** | 中等 | 较低 |
-| **网络带宽** | 较高 | 较低 |
-| **存储空间** | 较大 | 较小 |
+| Metric | Official Client | Proxy Service |
+|--------|----------------|---------------|
+| **Memory Usage** | High | Low |
+| **CPU Usage** | Medium | Low |
+| **Network Bandwidth** | High | Low |
+| **Storage Space** | Large | Small |
 
-## 💰 成本对比
+## Cost Comparison
 
-### 官方客户端
+### Official Client
 
-- **API 调用**: 按请求付费
-- **数据传输**: 按流量付费
-- **存储**: 按存储量付费
-- **总成本**: $10-100/月（取决于使用量）
+- **API Calls**: Pay-per-request
+- **Data Transfer**: Pay-per-traffic
+- **Storage**: Pay-per-storage
+- **Total Cost**: $10-100/month (depending on usage)
 
-### 代理服务
+### Proxy Service
 
-- **Google Cloud Run**: 免费额度（每月 200万请求）
-- **数据传输**: 免费额度（15GB/月）
-- **存储**: 免费额度（5GB）
-- **总成本**: 几乎免费（学生）
+- **Google Cloud Run**: Free tier (20M requests/month)
+- **Data Transfer**: Free tier (15GB/month)
+- **Storage**: Free tier (5GB)
+- **Total Cost**: Almost free (student)
 
-## 🎓 学习价值对比
+## Learning Value Comparison
 
-### 官方客户端
+### Official Client
 
-**适合学习：**
-- ✅ API 设计和最佳实践
-- ✅ 生物信息学应用
-- ✅ 数据可视化
-- ✅ 科学计算
+**Suitable for learning:**
+- API design and best practices
+- Bioinformatics applications
+- Data visualization
+- Scientific computing
 
-**学习曲线：**
-- 简单到中等
+**Learning curve:**
+- Simple to medium
 
-### 代理服务
+### Proxy Service
 
-**适合学习：**
-- ✅ gRPC 和 protobuf
-- ✅ 微服务架构
-- ✅ 云部署和运维
-- ✅ 网络编程
-- ✅ 系统设计
+**Suitable for learning:**
+- gRPC and protobuf
+- Microservice architecture
+- Cloud deployment and operations
+- Network programming
+- System design
 
-**学习曲线：**
-- 中等到困难
+**Learning curve:**
+- Medium to difficult
 
-## 🏆 推荐使用场景
+## Recommended Use Scenarios
 
-### 使用官方客户端当：
+### Use Official Client When:
 
-- 🎯 **快速原型开发** - 需要快速验证想法
-- 📊 **数据可视化** - 需要生成图表和报告
-- 🔬 **科学研究** - 专注于生物学分析
-- 💼 **生产环境** - 企业级应用
-- 📚 **学习 API 使用** - 了解 AlphaGenome 功能
+- 🎯 **Quick Prototyping** - Need to quickly validate ideas
+- **Data Visualization** - Need to generate charts and reports
+- 🔬 **Scientific Research** - Focus on biological analysis
+- 💼 **Production Environment** - Enterprise applications
+- **Learning API Usage** - Understand AlphaGenome functionality
 
-### 使用代理服务当：
+### Use Proxy Service When:
 
-- 🎓 **学习系统设计** - 了解微服务架构
-- 💰 **成本敏感** - 预算有限的学生项目
-- 🔧 **需要定制** - 需要修改或扩展功能
-- ☁️ **学习云部署** - 了解容器化和云服务
-- 🚀 **性能优化** - 需要更快的响应时间
+- **Learning System Design** - Understand microservice architecture
+- **Cost Sensitive** - Budget-limited student projects
+- **Customizable** - Need to modify or extend functionality
+-  **Learning Cloud Deployment** - Understand containerization and cloud services
+- **Performance Optimization** - Need faster response time
 
-## 📝 总结
+## Summary
 
-### 🥇 **最佳选择**
+### 🥇 **Best Choice**
 
-**对于学生和学习者：**
-1. **开始阶段** - 使用官方客户端快速上手
-2. **进阶阶段** - 部署代理服务学习系统设计
-3. **项目阶段** - 根据需求选择合适的方案
+**For students and learners:**
+1. **Starting Stage** - Use official client to get started quickly
+2. **Advanced Stage** - Deploy proxy service to learn system design
+3. **Project Stage** - Choose the appropriate solution based on requirements
 
-**对于生产环境：**
-- 推荐使用官方客户端，除非有特殊需求
+**For production environments:**
+- Recommend using official client, unless there are specific requirements
 
-### 🎯 **我们的成就**
+### 🎯 **Our Achievements**
 
-✅ **成功部署** - 代理服务运行在 Google Cloud  
-✅ **功能完整** - 支持核心 API 功能  
-✅ **性能优秀** - 响应时间优于官方客户端  
-✅ **成本低廉** - 几乎免费的学生方案  
-✅ **学习价值** - 完整的系统设计经验  
+ **Successful Deployment** - Proxy service running on Google Cloud  
+ **Complete Functionality** - Supports core API features  
+ **Excellent Performance** - Response time better than official client  
+ **Low Cost** - Almost free student solution  
+ **Learning Value** - Complete system design experience  
 
-**你的 AlphaGenome 代理服务已经成功运行，为学习系统设计和云部署提供了完美的实践平台！** 🎉 
+**Your AlphaGenome proxy service has successfully run, providing a perfect platform for learning system design and cloud deployment!** 

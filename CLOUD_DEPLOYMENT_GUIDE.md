@@ -1,4 +1,4 @@
-# 🌤️ AlphaGenome 通信代理 - 云部署指南
+# 🌤 AlphaGenome 通信代理 - 云部署指南
 
 ## 📋 部署概览
 
@@ -9,7 +9,7 @@
 - **Azure** - 使用 Container Instances
 - **Kubernetes** - 通用 Kubernetes 集群
 
-## 🚀 快速部署
+## 快速部署
 
 ### 一键部署脚本
 
@@ -21,7 +21,7 @@
 ./scripts/deploy.sh kubernetes   # Kubernetes 部署
 ```
 
-## ☁️ AWS 部署
+##  AWS 部署
 
 ### 前置要求
 
@@ -112,7 +112,7 @@ aws ecs create-service \
 └─────────────────┘    └─────────────────┘
 ```
 
-## ☁️ Google Cloud 部署
+##  Google Cloud 部署
 
 ### 前置要求
 
@@ -187,7 +187,7 @@ kubectl get pods
 kubectl get services
 ```
 
-## ☁️ Azure 部署
+##  Azure 部署
 
 ### 前置要求
 
@@ -237,7 +237,7 @@ az container show \
   --output tsv
 ```
 
-## ☸️ Kubernetes 部署
+## ☸ Kubernetes 部署
 
 ### 通用 Kubernetes 集群
 
@@ -312,7 +312,7 @@ spec:
           periodSeconds: 5
 ```
 
-## 🔧 配置管理
+## 配置管理
 
 ### 环境变量配置
 
@@ -355,7 +355,7 @@ monitoring:
   health_check_path: /health
 ```
 
-## 📊 监控和日志
+## 监控和日志
 
 ### CloudWatch 监控（AWS）
 
@@ -399,7 +399,7 @@ kubectl apply -f monitoring/fluentd-daemonset.yaml
 docker-compose -f monitoring/elk-stack.yml up -d
 ```
 
-## 🔒 安全配置
+## 安全配置
 
 ### 网络安全
 
@@ -437,7 +437,7 @@ az keyvault secret set \
   --value "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw"
 ```
 
-## 🚀 自动化部署
+## 自动化部署
 
 ### CI/CD 流水线
 
@@ -547,7 +547,7 @@ aws elbv2 create-target-group \
   --target-type ip
 ```
 
-## 🛠️ 故障排除
+##  故障排除
 
 ### 常见问题
 
@@ -602,10 +602,10 @@ kubectl top pods
 
 ## 📞 支持
 
-- 📖 [用户指南](USER_GUIDE.md)
+- [用户指南](USER_GUIDE.md)
 - 🐛 [问题报告](https://github.com/your-repo/alphagenome-proxy/issues)
 - 💬 [讨论](https://github.com/your-repo/alphagenome-proxy/discussions)
 
 ---
 
-**🎉 恭喜！你的 AlphaGenome 通信代理已成功部署到云端！** 
+** 恭喜！你的 AlphaGenome 通信代理已成功部署到云端！** 

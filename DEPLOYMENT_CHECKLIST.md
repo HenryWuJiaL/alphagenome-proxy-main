@@ -81,7 +81,7 @@ GRPC_ENDPOINT=alphagenome-proxy-xxxxx-uc.a.run.app:443
 CUSTOM_DOMAIN=your-domain.com
 ```
 
-## 🚀 **部署步骤**
+## **部署步骤**
 
 ### 步骤 1: 准备环境
 
@@ -125,7 +125,7 @@ gcloud run deploy $SERVICE_NAME \
   --set-env-vars ALPHAGENOME_API_KEY=$ALPHAGENOME_API_KEY
 ```
 
-## 📊 **部署后信息**
+## **部署后信息**
 
 ### 服务访问信息
 
@@ -133,8 +133,8 @@ gcloud run deploy $SERVICE_NAME \
 # 获取服务 URL
 SERVICE_URL=$(gcloud run services describe alphagenome-proxy --region=us-central1 --format="value(status.url)")
 
-echo "🌐 HTTP 服务: $SERVICE_URL"
-echo "🔗 gRPC 端点: ${SERVICE_URL#https://}:443"
+echo " HTTP 服务: $SERVICE_URL"
+echo " gRPC 端点: ${SERVICE_URL#https://}:443"
 ```
 
 ### 测试服务
@@ -147,7 +147,7 @@ curl "$SERVICE_URL/health"
 python deployment-package/scripts/test-service.sh
 ```
 
-## 💰 **成本信息**
+## **成本信息**
 
 ### 免费额度（每月）
 - **Cloud Run**: 200万请求
@@ -162,22 +162,22 @@ python deployment-package/scripts/test-service.sh
 
 **典型使用场景（每月 10万请求）**: 几乎免费
 
-## 🔒 **安全考虑**
+## **安全考虑**
 
 ### 1. **API 密钥安全**
-- ✅ 使用环境变量存储
-- ✅ 不要提交到代码仓库
-- ✅ 定期轮换密钥
+- 使用环境变量存储
+- 不要提交到代码仓库
+- 定期轮换密钥
 
 ### 2. **访问控制**
-- ✅ 使用 IAM 角色控制访问
-- ✅ 定期审查权限
-- ✅ 启用审计日志
+- 使用 IAM 角色控制访问
+- 定期审查权限
+- 启用审计日志
 
 ### 3. **网络安全**
-- ✅ 使用 HTTPS 加密
-- ✅ 配置 CORS 策略
-- ✅ 考虑 VPC 网络隔离
+- 使用 HTTPS 加密
+- 配置 CORS 策略
+- 考虑 VPC 网络隔离
 
 ## 🆘 **故障排除**
 
@@ -219,7 +219,7 @@ python deployment-package/scripts/test-service.sh
 
 ### 联系信息
 - 📧 **邮箱**: your-email@example.com
-- 📖 **文档**: [项目文档链接]
+- **文档**: [项目文档链接]
 - 🐛 **Issues**: [GitHub Issues 链接]
 
 ### 紧急联系
@@ -243,4 +243,4 @@ python deployment-package/scripts/test-service.sh
 
 ---
 
-**🎉 部署完成后，你的 AlphaGenome 代理服务就可以使用了！** 
+** 部署完成后，你的 AlphaGenome 代理服务就可以使用了！** 

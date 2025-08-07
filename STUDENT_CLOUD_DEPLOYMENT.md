@@ -1,35 +1,35 @@
-# 🎓 学生免费云部署指南
+# Student Free Cloud Deployment Guide
 
-## 🆓 免费云平台对比
+## Free Cloud Platform Comparison
 
-| 平台 | 免费额度 | 申请难度 | 推荐指数 |
-|------|----------|----------|----------|
+| Platform | Free Tier | Application Difficulty | Recommendation |
+|----------|-----------|----------------------|----------------|
 | **Google Cloud** | $300 + Always Free | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **AWS** | 12个月免费套餐 | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Azure** | $100 学生额度 | ⭐⭐ | ⭐⭐⭐⭐ |
-| **Oracle Cloud** | 永久免费 | ⭐⭐⭐ | ⭐⭐⭐ |
+| **AWS** | 12-month free tier | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Azure** | $100 student credit | ⭐⭐ | ⭐⭐⭐⭐ |
+| **Oracle Cloud** | Always free | ⭐⭐⭐ | ⭐⭐⭐ |
 
-## 🚀 Google Cloud 部署（推荐）
+## Google Cloud Deployment (Recommended)
 
-### 步骤 1：注册学生账户
+### Step 1: Register Student Account
 
-1. **访问 Google Cloud 学生页面**
+1. **Visit Google Cloud Student Page**
    ```
    https://cloud.google.com/edu
    ```
 
-2. **使用教育邮箱注册**
-   - 使用你的学校邮箱（如：student@university.edu）
-   - 验证学生身份
+2. **Register with Educational Email**
+   - Use your school email (e.g., student@university.edu)
+   - Verify student identity
 
-3. **获得免费额度**
-   - $300 免费额度（90天）
-   - Always Free 套餐（永久）
+3. **Get Free Credits**
+   - $300 free credits (90 days)
+   - Always Free tier (permanent)
 
-### 步骤 2：创建项目
+### Step 2: Create Project
 
 ```bash
-# 安装 Google Cloud SDK
+# Install Google Cloud SDK
 # macOS
 brew install google-cloud-sdk
 
@@ -37,34 +37,34 @@ brew install google-cloud-sdk
 curl https://sdk.cloud.google.com | bash
 exec -l $SHELL
 
-# 初始化项目
+# Initialize project
 gcloud init
 
-# 创建新项目
+# Create new project
 gcloud projects create alphagenome-student-project
 
-# 设置项目
+# Set project
 gcloud config set project alphagenome-student-project
 
-# 启用必要服务
+# Enable required services
 gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 ```
 
-### 步骤 3：部署应用
+### Step 3: Deploy Application
 
 ```bash
-# 设置环境变量
+# Set environment variables
 export PROJECT_ID=alphagenome-student-project
 export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 
-# 构建 Docker 镜像
+# Build Docker image
 docker build -t gcr.io/$PROJECT_ID/alphagenome-proxy .
 
-# 推送镜像到 Google Container Registry
+# Push image to Google Container Registry
 docker push gcr.io/$PROJECT_ID/alphagenome-proxy
 
-# 部署到 Cloud Run
+# Deploy to Cloud Run
 gcloud run deploy alphagenome-proxy \
   --image gcr.io/$PROJECT_ID/alphagenome-proxy \
   --platform managed \
@@ -77,64 +77,64 @@ gcloud run deploy alphagenome-proxy \
   --cpu 1 \
   --max-instances 5
 
-# 获取服务 URL
+# Get service URL
 gcloud run services describe alphagenome-proxy \
   --region us-central1 \
   --format 'value(status.url)'
 ```
 
-### 步骤 4：测试服务
+### Step 4: Test Service
 
 ```bash
-# 测试健康检查
+# Test health check
 curl -X GET https://your-service-url/health
 
-# 测试 gRPC 连接
+# Test gRPC connection
 python -c "
 import grpc
 from alphagenome.protos import dna_model_service_pb2_grpc
 channel = grpc.insecure_channel('your-service-url:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
-print('✅ 连接成功')
+print('Connection successful')
 "
 ```
 
-## 🆓 AWS 免费部署
+## AWS Free Deployment
 
-### 步骤 1：注册 AWS 免费账户
+### Step 1: Register AWS Free Account
 
-1. **访问 AWS Free Tier**
+1. **Visit AWS Free Tier**
    ```
    https://aws.amazon.com/free/
    ```
 
-2. **注册账户**
-   - 需要信用卡验证（不会收费）
-   - 获得 12个月免费套餐
+2. **Register Account**
+   - Requires credit card verification (no charge)
+   - Get 12-month free tier
 
-### 步骤 2：部署到 ECS
+### Step 2: Deploy to ECS
 
 ```bash
-# 安装 AWS CLI
+# Install AWS CLI
 # macOS
 brew install awscli
 
-# 配置 AWS
+# Configure AWS
 aws configure
 
-# 创建 ECR 仓库
+# Create ECR repository
 aws ecr create-repository --repository-name alphagenome-proxy
 
-# 登录 ECR
+# Login to ECR
 aws ecr get-login-password --region us-east-1 | \
   docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 
-# 构建并推送镜像
+# Build and push image
 docker build -t alphagenome-proxy .
 docker tag alphagenome-proxy:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/alphagenome-proxy:latest
 docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/alphagenome-proxy:latest
 
-# 使用 CloudFormation 部署
+# Use CloudFormation to deploy
 aws cloudformation create-stack \
   --stack-name alphagenome-student \
   --template-body file://deploy/aws/cloudformation.yaml \
@@ -142,41 +142,41 @@ aws cloudformation create-stack \
   --capabilities CAPABILITY_IAM
 ```
 
-## 🆓 Oracle Cloud 永久免费
+## Oracle Cloud Permanent Free
 
-### 步骤 1：注册 Oracle Cloud
+### Step 1: Register Oracle Cloud
 
-1. **访问 Oracle Cloud Free Tier**
+1. **Visit Oracle Cloud Free Tier**
    ```
    https://www.oracle.com/cloud/free/
    ```
 
-2. **注册账户**
-   - 需要信用卡验证
-   - 获得永久免费套餐
+2. **Register Account**
+   - Requires credit card verification
+   - Get permanent free tier
 
-### 步骤 2：创建 VM 实例
+### Step 2: Create VM Instance
 
 ```bash
-# 创建 VM 实例
-# 选择 Oracle Linux
-# 配置：1 OCPU, 6GB RAM
+# Create VM instance
+# Select Oracle Linux
+# Configuration: 1 OCPU, 6GB RAM
 
-# 连接到实例
+# Connect to instance
 ssh opc@your-instance-ip
 
-# 安装 Docker
+# Install Docker
 sudo yum update -y
 sudo yum install -y docker
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker opc
 
-# 重新登录
+# Re-login
 exit
 ssh opc@your-instance-ip
 
-# 部署应用
+# Deploy application
 docker run -d \
   --name alphagenome-proxy \
   -p 50051:50051 \
@@ -185,55 +185,55 @@ docker run -d \
   alphagenome-proxy:latest
 ```
 
-## 💰 成本对比
+## Cost Comparison
 
 ### Google Cloud Run
-- **免费额度**: 每月 200万请求
-- **超出费用**: $0.0000024/请求
-- **学生优惠**: $300 免费额度
-- **总成本**: 几乎免费
+- **Free Tier**: 2000000 requests per month
+- **Over-usage Fee**: $0.0000024/request
+- **Student Discount**: $300 free credits
+- **Total Cost**: Almost free
 
 ### AWS ECS
-- **免费额度**: 每月 40万秒 Fargate
-- **超出费用**: $0.04048/vCPU-小时
-- **学生优惠**: 12个月免费
-- **总成本**: 免费（12个月内）
+- **Free Tier**: 400000 seconds Fargate
+- **Over-usage Fee**: $0.04048/vCPU-hour
+- **Student Discount**: 12-month free
+- **Total Cost**: Free (within 12 months)
 
 ### Oracle Cloud
-- **免费额度**: 永久免费
-- **资源**: 2个 VM 实例
-- **学生优惠**: 无额外优惠
-- **总成本**: 永久免费
+- **Free Tier**: Permanent free
+- **Resources**: 2 VM instances
+- **Student Discount**: No additional discount
+- **Total Cost**: Permanent free
 
-## 🎯 学生专属优惠
+## Student Exclusive Discounts
 
 ### 1. GitHub Student Developer Pack
 ```
 https://education.github.com/pack
 ```
-- 多个云平台免费额度
-- 开发工具免费使用
-- 学习资源
+- Multiple cloud platform free tiers
+- Free development tools
+- Learning resources
 
 ### 2. Microsoft Azure for Students
 ```
 https://azure.microsoft.com/zh-cn/free/students/
 ```
-- $100 免费额度
-- 无时间限制
-- 40+ 服务免费
+- $100 free credit
+- No time limit
+- 40+ free services
 
 ### 3. Google Cloud for Students
 ```
 https://cloud.google.com/edu
 ```
-- 额外学习资源
-- 认证考试优惠
-- 社区支持
+- Additional learning resources
+- Certification exam discounts
+- Community support
 
-## 🛠️ 一键部署脚本
+## One-Click Deployment Script
 
-### Google Cloud 一键部署
+### Google Cloud One-Click Deployment
 
 ```bash
 #!/bin/bash
@@ -241,31 +241,31 @@ https://cloud.google.com/edu
 
 set -e
 
-echo "🎓 学生 Google Cloud 部署脚本"
+echo "🎓 Student Google Cloud Deployment Script"
 
-# 检查依赖
+# Check dependencies
 if ! command -v gcloud &> /dev/null; then
-    echo "❌ 请先安装 Google Cloud SDK"
+    echo "❌ Please install Google Cloud SDK first"
     exit 1
 fi
 
-# 设置变量
+# Set variables
 export PROJECT_ID=alphagenome-student-$(date +%s)
 export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 
-echo "📦 创建项目: $PROJECT_ID"
+echo "📦 Creating project: $PROJECT_ID"
 gcloud projects create $PROJECT_ID
 gcloud config set project $PROJECT_ID
 
-echo "🔧 启用服务"
+echo "�� Enabling services"
 gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 
-echo "🐳 构建镜像"
+echo "🐳 Building image"
 docker build -t gcr.io/$PROJECT_ID/alphagenome-proxy .
 docker push gcr.io/$PROJECT_ID/alphagenome-proxy
 
-echo "🚀 部署到 Cloud Run"
+echo "🚀 Deploying to Cloud Run"
 gcloud run deploy alphagenome-proxy \
   --image gcr.io/$PROJECT_ID/alphagenome-proxy \
   --platform managed \
@@ -274,54 +274,54 @@ gcloud run deploy alphagenome-proxy \
   --set-env-vars ALPHAGENOME_API_KEY=$ALPHAGENOME_API_KEY \
   --port 50051
 
-echo "✅ 部署完成！"
-echo "🌐 服务地址:"
+echo "✅ Deployment complete!"
+echo "🌐 Service URL:"
 gcloud run services describe alphagenome-proxy \
   --region us-central1 \
   --format 'value(status.url)'
 ```
 
-### 使用方法
+### Usage
 
 ```bash
-# 给脚本执行权限
+# Give script execution permission
 chmod +x student-deploy-gcp.sh
 
-# 运行部署
+# Run deployment
 ./student-deploy-gcp.sh
 ```
 
-## 📚 学习资源
+## Learning Resources
 
-### 1. 云平台学习
+### 1. Cloud Platform Learning
 - **Google Cloud**: https://cloud.google.com/learn
 - **AWS**: https://aws.amazon.com/training/
 - **Azure**: https://docs.microsoft.com/learn/
 
-### 2. 容器化学习
+### 2. Containerization Learning
 - **Docker**: https://docs.docker.com/get-started/
 - **Kubernetes**: https://kubernetes.io/docs/tutorials/
 
-### 3. gRPC 学习
-- **gRPC 官方**: https://grpc.io/docs/
+### 3. gRPC Learning
+- **gRPC Official**: https://grpc.io/docs/
 - **Python gRPC**: https://grpc.io/docs/languages/python/
 
-## 🎉 总结
+## Conclusion
 
-**推荐顺序：**
-1. 🥇 **Google Cloud Run** - 最简单，免费额度充足
-2. 🥈 **Oracle Cloud** - 永久免费，资源充足
-3. 🥉 **AWS ECS** - 功能强大，12个月免费
+**Recommended Order:**
+1. 🥇 **Google Cloud Run** - Simplest, free credits sufficient
+2. 🥈 **Oracle Cloud** - Permanent free, sufficient resources
+3. 🥉 **AWS ECS** - Powerful, 12-month free
 
-**开始部署：**
+**Start Deployment:**
 ```bash
-# 选择 Google Cloud
+# Choose Google Cloud
 ./student-deploy-gcp.sh
 
-# 或选择 Oracle Cloud
-# 按照上面的步骤创建 VM 实例
+# Or choose Oracle Cloud
+# Follow the steps above to create a VM instance
 ```
 
 ---
 
-**🎓 祝你学习愉快！有任何问题都可以问我！** 
+**🎓 Happy learning! Feel free to ask me any questions!** 

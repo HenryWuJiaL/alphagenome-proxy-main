@@ -1,4 +1,4 @@
-# 🚀 云部署快速指南
+# 云部署快速指南
 
 ## 📋 部署选项
 
@@ -24,7 +24,7 @@ export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 ./scripts/deploy.sh kubernetes   # Kubernetes 部署
 ```
 
-## ☁️ AWS 部署（推荐）
+##  AWS 部署（推荐）
 
 ### 步骤 1：安装 AWS CLI
 
@@ -65,7 +65,7 @@ aws cloudformation describe-stacks \
   --output text
 ```
 
-## ☁️ Google Cloud 部署
+##  Google Cloud 部署
 
 ### 步骤 1：安装 Google Cloud SDK
 
@@ -106,7 +106,7 @@ gcloud run deploy alphagenome-proxy \
   --port 50051
 ```
 
-## ☸️ Kubernetes 部署
+## ☸ Kubernetes 部署
 
 ### 步骤 1：准备集群
 
@@ -132,7 +132,7 @@ kubectl get pods -n alphagenome
 kubectl get services -n alphagenome
 ```
 
-## 🔧 配置管理
+## 配置管理
 
 ### 环境变量
 
@@ -153,7 +153,7 @@ LOG_LEVEL=INFO
 - **健康检查**: /health
 - **就绪检查**: /ready
 
-## 📊 监控和验证
+## 监控和验证
 
 ### 健康检查
 
@@ -167,7 +167,7 @@ import grpc
 from alphagenome.protos import dna_model_service_pb2_grpc
 channel = grpc.insecure_channel('your-service-url:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
-print('✅ 连接成功')
+print(' 连接成功')
 "
 ```
 
@@ -188,7 +188,7 @@ aws cloudwatch get-metric-statistics \
 gcloud monitoring metrics list --filter="metric.type:run.googleapis.com"
 ```
 
-## 🛠️ 故障排除
+##  故障排除
 
 ### 常见问题
 
@@ -237,7 +237,7 @@ docker stats alphagenome-proxy
 kubectl top pods -n alphagenome
 ```
 
-## 💰 成本估算
+## 成本估算
 
 ### AWS ECS
 - **计算**: $10-30/月 (Fargate)
@@ -257,7 +257,7 @@ kubectl top pods -n alphagenome
 - **存储**: $1-4/月 (日志)
 - **总计**: $14-41/月
 
-## 🚀 扩展配置
+## 扩展配置
 
 ### 自动扩缩容
 
@@ -289,10 +289,10 @@ kubectl apply -f deploy/kubernetes/ingress.yaml
 
 ## 📞 支持
 
-- 📖 [完整部署指南](CLOUD_DEPLOYMENT_GUIDE.md)
+- [完整部署指南](CLOUD_DEPLOYMENT_GUIDE.md)
 - 🐛 [问题报告](https://github.com/your-repo/alphagenome-proxy/issues)
 - 💬 [讨论](https://github.com/your-repo/alphagenome-proxy/discussions)
 
 ---
 
-**🎉 你的 AlphaGenome 通信代理已成功部署到云端！** 
+** 你的 AlphaGenome 通信代理已成功部署到云端！** 

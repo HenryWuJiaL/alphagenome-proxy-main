@@ -1,75 +1,75 @@
-# 🧬 AlphaGenome Proxy Service
+# AlphaGenome Proxy Service
 
-一个高性能的 AlphaGenome API 代理服务，提供 gRPC 接口，支持快速变异预测和序列分析。
+A high-performance AlphaGenome API proxy service that provides gRPC interface, supporting fast variant prediction and sequence analysis.
 
-## ✨ 特性
+## Features
 
-- 🚀 **高性能**: 响应时间优于官方客户端（0.00秒 vs 1.80秒）
-- 💰 **低成本**: 几乎免费（学生免费额度）
-- 🔧 **易部署**: 一键部署到 Google Cloud
-- 📊 **完整功能**: 支持所有核心 API
-- 🎓 **学习价值**: 了解微服务和云部署
-- 🔒 **安全**: 支持多种认证方式
+- **High Performance**: Response time better than official client (0.00s vs 1.80s)
+- **Low Cost**: Almost free (student free tier)
+- **Easy Deployment**: One-click deployment to Google Cloud
+- **Complete Functionality**: Supports all core APIs
+- **Learning Value**: Understand microservices and cloud deployment
+- **Security**: Supports multiple authentication methods
 
-## 🚀 快速开始
+## Quick Start
 
-### 本地运行
+### Local Run
 
 ```bash
-# 克隆项目
+# Clone project
 git clone https://github.com/your-username/alphagenome-proxy.git
 cd alphagenome-proxy
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 设置环境变量
+# Set environment variables
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 运行服务
+# Run service
 python -m src.alphagenome.communication_proxy
 ```
 
-### Docker 运行
+### Docker Run
 
 ```bash
-# 构建镜像
+# Build image
 docker build -t alphagenome-proxy .
 
-# 运行容器
+# Run container
 docker run -p 8080:8080 -e ALPHAGENOME_API_KEY=your_api_key_here alphagenome-proxy
 ```
 
-### 云部署
+### Cloud Deployment
 
 ```bash
-# 一键部署到 Google Cloud
+# One-click deployment to Google Cloud
 chmod +x student-deploy-gcp.sh
 ./student-deploy-gcp.sh
 ```
 
-## 📖 文档
+## Documentation
 
-- [用户指南](USER_GUIDE.md) - 详细使用说明
-- [快速开始](QUICK_START.md) - 快速上手
-- [API 参考](API_REFERENCE.md) - API 文档
-- [部署指南](CLOUD_DEPLOYMENT_GUIDE.md) - 云部署说明
-- [学生部署指南](STUDENT_CLOUD_DEPLOYMENT.md) - 学生专用部署
+- [User Guide](USER_GUIDE.md) - Detailed usage instructions
+- [Quick Start](QUICK_START.md) - Quick start guide
+- [API Reference](API_REFERENCE.md) - API documentation
+- [Deployment Guide](CLOUD_DEPLOYMENT_GUIDE.md) - Cloud deployment instructions
+- [Student Deployment Guide](STUDENT_CLOUD_DEPLOYMENT.md) - Student-specific deployment
 
-## 🔧 使用示例
+## Usage Examples
 
-### Python 客户端
+### Python Client
 
 ```python
 import grpc
 from src.alphagenome.protos import dna_model_service_pb2, dna_model_service_pb2_grpc, dna_model_pb2
 
-# 连接到代理服务
+# Connect to proxy service
 credentials = grpc.ssl_channel_credentials()
 channel = grpc.secure_channel("alphagenome-proxy-xxxxx-uc.a.run.app:443", credentials)
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
 
-# 创建请求
+# Create request
 request = dna_model_service_pb2.PredictVariantRequest()
 request.interval.chromosome = "chr22"
 request.interval.start = 35677410
@@ -80,29 +80,29 @@ request.variant.reference_bases = "A"
 request.variant.alternate_bases = "C"
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
 
-# 发送请求
+# Send request
 response = stub.PredictVariant(request)
-print(f"预测结果: {response}")
+print(f"Prediction result: {response}")
 ```
 
-### 与官方客户端对比
+### Comparison with Official Client
 
 ```python
-# 官方客户端
+# Official client
 from alphagenome.data import genome
 from alphagenome.models import dna_client
 
 API_KEY = 'your_api_key'
 model = dna_client.create(API_KEY)
 
-# 代理服务
+# Proxy service
 import grpc
 from src.alphagenome.protos import dna_model_service_pb2_grpc
 
-# 性能对比：代理服务响应更快
+# Performance comparison: proxy service responds faster
 ```
 
-## 🏗️ 架构
+## Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -113,90 +113,90 @@ from src.alphagenome.protos import dna_model_service_pb2_grpc
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## 📊 性能对比
+## Performance Comparison
 
-| 指标 | 官方客户端 | 代理服务 | 优势 |
-|------|------------|----------|------|
-| 响应时间 | 1.80秒 | 0.00秒 | 🏆 快 100% |
-| 部署复杂度 | 中等 | 简单 | 🏆 一键部署 |
-| 成本 | 按使用付费 | 几乎免费 | 🏆 学生友好 |
-| 学习价值 | 低 | 高 | 🏆 系统设计 |
+| Metric | Official Client | Proxy Service | Advantage |
+|--------|----------------|---------------|-----------|
+| Response Time | 1.80s | 0.00s | 100% faster |
+| Deployment Complexity | Medium | Simple | One-click deployment |
+| Cost | Pay-per-use | Almost free | Student-friendly |
+| Learning Value | Low | High | System design |
 
-## 🚀 部署选项
+## Deployment Options
 
-### 1. Google Cloud Run（推荐）
-- 免费额度：每月 200万请求
-- 自动扩缩容
-- 全球 CDN
+### 1. Google Cloud Run (Recommended)
+- Free tier: 2 million requests per month
+- Auto-scaling
+- Global CDN
 
 ### 2. Docker
-- 本地部署
-- 容器化
-- 易于管理
+- Local deployment
+- Containerized
+- Easy management
 
 ### 3. Kubernetes
-- 生产环境
-- 高可用性
-- 自动扩缩容
+- Production environment
+- High availability
+- Auto-scaling
 
-## 🔒 安全特性
+## Security Features
 
-- ✅ HTTPS 加密传输
-- ✅ API 密钥安全存储
-- ✅ IAM 角色控制
-- ✅ 审计日志
-- ✅ 网络隔离
+- HTTPS encrypted transmission
+- Secure API key storage
+- IAM role control
+- Audit logs
+- Network isolation
 
-## 💰 成本
+## Cost
 
-### 免费额度（每月）
-- **Cloud Run**: 200万请求
-- **Cloud Build**: 120分钟构建时间
-- **Container Registry**: 0.5GB 存储
-- **网络**: 15GB 出站流量
+### Free Tier (Monthly)
+- **Cloud Run**: 2 million requests
+- **Cloud Build**: 120 minutes build time
+- **Container Registry**: 0.5GB storage
+- **Network**: 15GB outbound traffic
 
-### 典型使用成本
-- **每月 10万请求**: 几乎免费
-- **每月 100万请求**: 约 $5-10
-- **每月 1000万请求**: 约 $50-100
+### Typical Usage Cost
+- **100k requests/month**: Almost free
+- **1M requests/month**: About $5-10
+- **10M requests/month**: About $50-100
 
-## 🤝 贡献
+## Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Welcome to submit Issues and Pull Requests!
 
-### 开发环境设置
+### Development Environment Setup
 
 ```bash
-# 克隆项目
+# Clone project
 git clone https://github.com/your-username/alphagenome-proxy.git
 cd alphagenome-proxy
 
-# 创建虚拟环境
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # venv\Scripts\activate  # Windows
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 运行测试
+# Run tests
 python -m pytest tests/
 
-# 运行服务
+# Run service
 python -m src.alphagenome.communication_proxy
 ```
 
-## 📄 许可证
+## License
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+MIT License - See [LICENSE](LICENSE) file for details
 
-## 🙏 致谢
+## Acknowledgments
 
-- [AlphaGenome](https://github.com/google/alphagenome) - 原始 API
-- [FastAPI](https://fastapi.tiangolo.com/) - Web 框架
-- [gRPC](https://grpc.io/) - RPC 框架
-- [Google Cloud](https://cloud.google.com/) - 云平台
+- [AlphaGenome](https://github.com/google/alphagenome) - Original API
+- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
+- [gRPC](https://grpc.io/) - RPC framework
+- [Google Cloud](https://cloud.google.com/) - Cloud platform
 
 ---
 
-**🎉 开始使用 AlphaGenome Proxy Service，享受高性能的基因组分析体验！** 
+**Start using AlphaGenome Proxy Service and enjoy high-performance genome analysis experience!** 

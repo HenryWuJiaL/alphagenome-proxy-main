@@ -1,53 +1,53 @@
-# AlphaGenome 通信代理 - 快速入门
+# AlphaGenome Communication Proxy - Quick Start
 
-## 🚀 5分钟快速开始
+## 5-Minute Quick Start
 
-### 1. 准备环境
+### 1. Prepare Environment
 
 ```bash
-# 确保已安装 Docker
+# Ensure Docker is installed
 docker --version
 docker-compose --version
 
-# 克隆项目（如果还没有）
+# Clone project (if not already done)
 cd alphagenome-main
 ```
 
-### 2. 配置 API Key
+### 2. Configure API Key
 
 ```bash
-# 设置你的 API Key
+# Set your API Key
 export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 ```
 
-### 3. 启动服务
+### 3. Start Service
 
 ```bash
-# 一键启动
+# One-click start
 docker-compose up -d
 
-# 检查状态
+# Check status
 docker-compose ps
 ```
 
-### 4. 测试连接
+### 4. Test Connection
 
 ```bash
-# 运行端到端测试
+# Run end-to-end test
 python test_end_to_end.py
 ```
 
-### 5. 使用服务
+### 5. Use Service
 
 ```python
 import grpc
 from alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
-# 连接
+# Connect
 channel = grpc.insecure_channel('localhost:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
 
-# 预测变异
+# Predict variant
 request = dna_model_pb2.PredictVariantRequest()
 request.interval.chromosome = "chr22"
 request.interval.start = 35677410
@@ -59,123 +59,123 @@ request.variant.alternate_bases = "C"
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
 
 response = stub.PredictVariant(request)
-print(f"预测结果: {response}")
+print(f"Prediction result: {response}")
 ```
 
-## 📋 常用命令
+## Common Commands
 
-| 命令 | 描述 |
-|------|------|
-| `docker-compose up -d` | 启动服务 |
-| `docker-compose down` | 停止服务 |
-| `docker-compose logs -f` | 查看日志 |
-| `docker-compose ps` | 检查状态 |
-| `python test_end_to_end.py` | 运行测试 |
+| Command | Description |
+|---------|-------------|
+| `docker-compose up -d` | Start service |
+| `docker-compose down` | Stop service |
+| `docker-compose logs -f` | View logs |
+| `docker-compose ps` | Check status |
+| `python test_end_to_end.py` | Run tests |
 
-## 🔧 配置选项
+## Configuration Options
 
-### 环境变量
+### Environment Variables
 
 ```bash
-# 必需
+# Required
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 可选
+# Optional
 export JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com
 export API_KEY_HEADER=Authorization
 export API_KEY_PREFIX=Bearer
 ```
 
-### 端口配置
+### Port Configuration
 
-- **gRPC 服务**: `localhost:50051`
-- **健康检查**: `localhost:8000/health`
+- **gRPC Service**: `localhost:50051`
+- **Health Check**: `localhost:8000/health`
 
-## 🧪 验证安装
+## Verify Installation
 
-### 1. 服务状态检查
+### 1. Service Status Check
 
 ```bash
 docker-compose ps
 ```
 
-应该看到：
+Should see:
 ```
 NAME                                    STATUS
 alphagenome-main2-alphagenome-proxy-1   Up (healthy)
 alphagenome-main2-mock-json-service-1   Up
 ```
 
-### 2. 功能测试
+### 2. Functionality Test
 
 ```bash
-# 单元测试
+# Unit tests
 python -m pytest src/alphagenome/communication_proxy_test.py -v
 
-# 端到端测试
+# End-to-end test
 python test_end_to_end.py
 ```
 
-### 3. 手动测试
+### 3. Manual Test
 
 ```bash
-# 健康检查
+# Health check
 curl -X GET http://localhost:8000/health
 
-# gRPC 连接测试
+# gRPC connection test
 python -c "
 import grpc
 from alphagenome.protos import dna_model_service_pb2_grpc
 channel = grpc.insecure_channel('localhost:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
-print('✅ gRPC 连接成功')
+print('gRPC connection successful')
 "
 ```
 
-## 🛠️ 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-**Q: 服务启动失败**
+**Q: Service fails to start**
 ```bash
-# 检查端口占用
+# Check port usage
 lsof -i :50051
 
-# 查看错误日志
+# View error logs
 docker-compose logs alphagenome-proxy
 ```
 
-**Q: API Key 错误**
+**Q: API Key error**
 ```bash
-# 验证环境变量
+# Verify environment variables
 docker-compose exec alphagenome-proxy env | grep ALPHAGENOME_API_KEY
 
-# 重新设置
+# Reset
 export ALPHAGENOME_API_KEY=your_api_key_here
 docker-compose restart alphagenome-proxy
 ```
 
-**Q: 测试失败**
+**Q: Test fails**
 ```bash
-# 检查服务状态
+# Check service status
 docker-compose ps
 
-# 查看详细日志
+# View detailed logs
 docker-compose logs -f
 ```
 
-## 📚 下一步
+## Next Steps
 
-- 查看完整文档：[USER_GUIDE.md](USER_GUIDE.md)
-- 了解部署选项：[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
-- 查看测试指南：[TESTING_GUIDE.md](TESTING_GUIDE.md)
+- View complete documentation: [USER_GUIDE.md](USER_GUIDE.md)
+- Learn about deployment options: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+- Check testing guide: [TESTING_GUIDE.md](TESTING_GUIDE.md)
 
-## 🆘 需要帮助？
+## Need Help?
 
-1. 检查日志：`docker-compose logs -f`
-2. 运行测试：`python test_end_to_end.py`
-3. 查看文档：[USER_GUIDE.md](USER_GUIDE.md)
+1. Check logs: `docker-compose logs -f`
+2. Run tests: `python test_end_to_end.py`
+3. View documentation: [USER_GUIDE.md](USER_GUIDE.md)
 
 ---
 
-**🎉 恭喜！你的 AlphaGenome 通信代理已经成功运行！** 
+**Congratulations! Your AlphaGenome Communication Proxy is successfully running!** 

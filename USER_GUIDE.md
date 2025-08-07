@@ -1,79 +1,79 @@
-# AlphaGenome 通信代理使用文档
+# AlphaGenome Communication Proxy User Guide
 
-## 📖 概述
+## Overview
 
-AlphaGenome 通信代理是一个 gRPC 到 JSON 的代理服务，用于连接 AlphaGenome API。它提供了以下功能：
+AlphaGenome Communication Proxy is a gRPC to JSON proxy service for connecting to the AlphaGenome API. It provides the following features:
 
-- **gRPC 接口**：提供标准的 gRPC 服务接口
-- **JSON 转换**：自动转换 gRPC 请求到 JSON 格式
-- **API Key 管理**：安全地处理 API 密钥
-- **多平台部署**：支持 Docker、AWS、Google Cloud、Kubernetes
+- **gRPC Interface**: Provides standard gRPC service interface
+- **JSON Conversion**: Automatically converts gRPC requests to JSON format
+- **API Key Management**: Securely handles API keys
+- **Multi-platform Deployment**: Supports Docker, AWS, Google Cloud, Kubernetes
 
-## 🚀 快速开始
+## Quick Start
 
-### 1. 环境要求
+### 1. Requirements
 
 - Python 3.10+
 - Docker & Docker Compose
-- API Key（从 [AlphaGenome](https://github.com/google-deepmind/alphagenome) 获取）
+- API Key (obtain from [AlphaGenome](https://github.com/google-deepmind/alphagenome))
 
-### 2. 安装和启动
+### 2. Installation and Startup
 
 ```bash
-# 克隆项目
+# Clone project
 git clone <your-repo-url>
 cd alphagenome-main
 
-# 创建虚拟环境
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-# 或
+# or
 venv\Scripts\activate  # Windows
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 配置 API Key
+# Configure API Key
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 启动服务
+# Start service
 docker-compose up -d
 ```
 
-### 3. 验证服务
+### 3. Verify Service
 
 ```bash
-# 检查服务状态
+# Check service status
 docker-compose ps
 
-# 运行测试
+# Run tests
 python -m pytest src/alphagenome/communication_proxy_test.py -v
 
-# 端到端测试
+# End-to-end test
 python test_end_to_end.py
 ```
 
-## 🔧 配置
+## Configuration
 
-### 环境变量
+### Environment Variables
 
-创建 `.env` 文件或设置环境变量：
+Create `.env` file or set environment variables:
 
 ```bash
-# JSON 服务的基础 URL
+# Base URL for JSON service
 JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com
 
 # AlphaGenome API Key
 ALPHAGENOME_API_KEY=your_api_key_here
 
-# API Key 的请求头名称 (可选，默认为 Authorization)
+# API Key header name (optional, default is Authorization)
 API_KEY_HEADER=Authorization
 
-# API Key 的前缀 (可选，默认为 "Bearer ")
+# API Key prefix (optional, default is "Bearer ")
 API_KEY_PREFIX=Bearer
 ```
 
-### Docker Compose 配置
+### Docker Compose Configuration
 
 ```yaml
 version: '3.8'
@@ -93,19 +93,19 @@ services:
     restart: unless-stopped
 ```
 
-## 📡 API 使用
+## API Usage
 
-### gRPC 客户端示例
+### gRPC Client Example
 
 ```python
 import grpc
 from alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
-# 连接到代理服务
+# Connect to proxy service
 channel = grpc.insecure_channel('localhost:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
 
-# 1. 预测变异
+# 1. Predict variant
 request = dna_model_pb2.PredictVariantRequest()
 request.interval.chromosome = "chr22"
 request.interval.start = 35677410
@@ -117,9 +117,9 @@ request.variant.alternate_bases = "C"
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
 
 response = stub.PredictVariant(request)
-print(f"预测结果: {response}")
+print(f"Prediction result: {response}")
 
-# 2. 评分区间
+# 2. Score interval
 request = dna_model_pb2.ScoreIntervalRequest()
 request.interval.chromosome = "chr22"
 request.interval.start = 35677410
@@ -127,9 +127,9 @@ request.interval.end = 35678410
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
 
 response = stub.ScoreInterval(request)
-print(f"评分结果: {response}")
+print(f"Scoring result: {response}")
 
-# 3. 流式预测序列
+# 3. Streamed sequence prediction
 request = dna_model_pb2.PredictSequenceRequest()
 request.model_version = "test_model"
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
@@ -137,28 +137,28 @@ request.sequence = "ATCGATCG"
 
 responses = stub.PredictSequence(iter([request]))
 for response in responses:
-    print(f"序列预测: {response}")
+    print(f"Sequence prediction: {response}")
     break
 ```
 
-### 支持的 API 方法
+### Supported API Methods
 
-| 方法 | 类型 | 描述 |
+| Method | Type | Description |
 |------|------|------|
-| `PredictVariant` | 非流式 | 预测基因组变异的影响 |
-| `ScoreInterval` | 非流式 | 评分基因组区间 |
-| `PredictSequence` | 流式 | 预测 DNA 序列 |
-| `PredictInterval` | 流式 | 预测基因组区间 |
+| `PredictVariant` | Non-streaming | Predict the impact of a genomic variant |
+| `ScoreInterval` | Non-streaming | Score a genomic interval |
+| `PredictSequence` | Streaming | Predict DNA sequence |
+| `PredictInterval` | Streaming | Predict genomic interval |
 
-## 🐳 Docker 部署
+## Docker Deployment
 
-### 本地 Docker
+### Local Docker
 
 ```bash
-# 构建镜像
+# Build image
 docker build -t alphagenome-proxy .
 
-# 运行容器
+# Run container
 docker run -d \
   --name alphagenome-proxy \
   -p 50051:50051 \
@@ -170,191 +170,191 @@ docker run -d \
 ### Docker Compose
 
 ```bash
-# 启动服务
+# Start service
 docker-compose up -d
 
-# 查看日志
+# View logs
 docker-compose logs -f alphagenome-proxy
 
-# 停止服务
+# Stop service
 docker-compose down
 ```
 
-## ☁️ 云平台部署
+## Cloud Platform Deployment
 
-### AWS 部署
+### AWS Deployment
 
 ```bash
-# 使用 CloudFormation
+# Use CloudFormation
 aws cloudformation create-stack \
   --stack-name alphagenome-proxy \
   --template-body file://deploy/aws/cloudformation.yaml \
   --parameters ParameterKey=ApiKey,ParameterValue=your_api_key_here
 
-# 或使用部署脚本
+# Or use deployment script
 ./scripts/deploy.sh aws
 ```
 
-### Google Cloud 部署
+### Google Cloud Deployment
 
 ```bash
-# 使用 Cloud Run
+# Use Cloud Run
 gcloud run deploy alphagenome-proxy \
   --image gcr.io/your-project/alphagenome-proxy \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated
 
-# 或使用部署脚本
+# Or use deployment script
 ./scripts/deploy.sh gcp
 ```
 
-### Kubernetes 部署
+### Kubernetes Deployment
 
 ```bash
-# 应用配置
+# Apply configuration
 kubectl apply -f deploy/kubernetes/deployment.yaml
 
-# 或使用部署脚本
+# Or use deployment script
 ./scripts/deploy.sh kubernetes
 ```
 
-## 🧪 测试
+## Testing
 
-### 单元测试
+### Unit Tests
 
 ```bash
-# 运行所有单元测试
+# Run all unit tests
 python -m pytest src/alphagenome/communication_proxy_test.py -v
 
-# 运行特定测试
+# Run specific test
 python -m pytest src/alphagenome/communication_proxy_test.py::CommunicationProxyTest::test_predict_variant_success -v
 ```
 
-### 端到端测试
+### End-to-end Tests
 
 ```bash
-# 启动测试环境
+# Start test environment
 docker-compose up -d
 
-# 运行端到端测试
+# Run end-to-end test
 python test_end_to_end.py
 
-# 测试真实 API
+# Test real API
 python test_real_api.py
 ```
 
-### 手动测试
+### Manual Testing
 
 ```bash
-# 健康检查
+# Health check
 curl -X GET http://localhost:8000/health
 
-# 测试 gRPC 连接
+# Test gRPC connection
 python -c "
 import grpc
 from alphagenome.protos import dna_model_service_pb2_grpc
 channel = grpc.insecure_channel('localhost:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
-print('gRPC 连接成功')
+print('gRPC connection successful')
 "
 ```
 
-## 🔍 监控和日志
+## Monitoring and Logging
 
-### 查看日志
+### View Logs
 
 ```bash
-# Docker 日志
+# Docker logs
 docker-compose logs -f alphagenome-proxy
 
-# 应用日志
+# Application logs
 tail -f logs/alphagenome-proxy.log
 ```
 
-### 健康检查
+### Health Check
 
 ```bash
-# 检查服务状态
+# Check service status
 docker-compose ps
 
-# 检查健康状态
+# Check health status
 curl -X GET http://localhost:8000/health
 ```
 
-### 性能监控
+### Performance Monitoring
 
 ```bash
-# 查看资源使用
+# View resource usage
 docker stats alphagenome-main2-alphagenome-proxy-1
 
-# 查看网络连接
+# View network connections
 netstat -an | grep 50051
 ```
 
-## 🛠️ 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-#### 1. 服务无法启动
+#### 1. Service fails to start
 
 ```bash
-# 检查端口占用
+# Check port usage
 lsof -i :50051
 
-# 检查 Docker 状态
+# Check Docker status
 docker-compose ps
 docker-compose logs alphagenome-proxy
 ```
 
-#### 2. API Key 错误
+#### 2. API Key Error
 
 ```bash
-# 验证环境变量
+# Verify environment variables
 docker-compose exec alphagenome-proxy env | grep ALPHAGENOME_API_KEY
 
-# 重新设置 API Key
+# Reset API Key
 export ALPHAGENOME_API_KEY=your_new_api_key_here
 docker-compose restart alphagenome-proxy
 ```
 
-#### 3. 网络连接问题
+#### 3. Network Connection Issues
 
 ```bash
-# 检查网络连接
+# Check network connection
 curl -X GET https://api.alphagenome.google.com/health
 
-# 检查代理配置
+# Check proxy configuration
 docker-compose exec alphagenome-proxy env | grep JSON_SERVICE_BASE_URL
 ```
 
-#### 4. gRPC 连接失败
+#### 4. gRPC Connection Failed
 
 ```bash
-# 检查 gRPC 服务
+# Check gRPC service
 grpcurl -plaintext localhost:50051 list
 
-# 测试 gRPC 调用
+# Test gRPC call
 grpcurl -plaintext -d '{}' localhost:50051 alphagenome.DnaModelService/PredictVariant
 ```
 
-### 调试模式
+### Debug Mode
 
 ```bash
-# 启用调试日志
+# Enable debug logging
 export LOG_LEVEL=DEBUG
 docker-compose restart alphagenome-proxy
 
-# 查看详细日志
+# View detailed logs
 docker-compose logs -f alphagenome-proxy
 ```
 
-## 📚 高级配置
+## Advanced Configuration
 
-### 自定义请求头
+### Custom Request Headers
 
 ```python
-# 在代码中自定义请求头
+# Customize request headers in code
 def _get_headers():
     headers = {
         'Content-Type': 'application/json',
@@ -367,10 +367,10 @@ def _get_headers():
     return headers
 ```
 
-### 负载均衡
+### Load Balancing
 
 ```yaml
-# 使用多个代理实例
+# Use multiple proxy instances
 version: '3.8'
 services:
   alphagenome-proxy-1:
@@ -388,10 +388,10 @@ services:
       - ALPHAGENOME_API_KEY=${ALPHAGENOME_API_KEY}
 ```
 
-### 缓存配置
+### Cache Configuration
 
 ```python
-# 添加缓存支持
+# Add cache support
 import redis
 import json
 
@@ -407,15 +407,15 @@ def cache_response(request_key, response):
     redis_client.setex(request_key, 3600, json.dumps(response))
 ```
 
-## 🔒 安全最佳实践
+## Security Best Practices
 
-### API Key 安全
+### API Key Security
 
 ```bash
-# 使用环境变量而不是硬编码
+# Use environment variables instead of hardcoding
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 使用密钥管理服务
+# Use key management service
 # AWS Secrets Manager
 aws secretsmanager get-secret-value --secret-id alphagenome-api-key
 
@@ -423,30 +423,30 @@ aws secretsmanager get-secret-value --secret-id alphagenome-api-key
 gcloud secrets versions access latest --secret="alphagenome-api-key"
 ```
 
-### 网络安全
+### Network Security
 
 ```yaml
-# 限制网络访问
+# Restrict network access
 services:
   alphagenome-proxy:
     networks:
       - internal
     ports:
-      - "127.0.0.1:50051:50051"  # 只允许本地访问
+      - "127.0.0.1:50051:50051"  # Only allow local access
 
 networks:
   internal:
     driver: bridge
 ```
 
-### 日志安全
+### Log Security
 
 ```python
-# 避免记录敏感信息
+# Avoid logging sensitive information
 import logging
 
 def log_request(request_dict):
-    # 移除敏感字段
+    # Remove sensitive fields
     safe_request = request_dict.copy()
     if 'api_key' in safe_request:
         safe_request['api_key'] = '***'
@@ -454,34 +454,34 @@ def log_request(request_dict):
     logging.info(f"Request: {safe_request}")
 ```
 
-## 📞 支持和反馈
+## Support and Feedback
 
-### 获取帮助
+### Get Help
 
-- **文档**：查看 `docs/` 目录
-- **示例**：查看 `colabs/` 目录中的 Jupyter 笔记本
-- **测试**：运行测试套件验证功能
+- **Documentation**: Check the `docs/` directory
+- **Examples**: Check Jupyter notebooks in the `colabs/` directory
+- **Testing**: Run the test suite to verify functionality
 
-### 报告问题
+### Report Issues
 
-1. 检查日志文件
-2. 运行诊断测试
-3. 收集环境信息
-4. 提交详细的问题报告
+1. Check log files
+2. Run diagnostic tests
+3. Collect environment information
+4. Submit detailed issue reports
 
-### 贡献
+### Contributing
 
-1. Fork 项目
-2. 创建功能分支
-3. 提交更改
-4. 创建 Pull Request
+1. Fork the project
+2. Create a feature branch
+3. Commit changes
+4. Create a Pull Request
 
 ---
 
-## 📄 许可证
+## License
 
-本项目遵循 Apache 2.0 许可证。详见 [LICENSE](LICENSE) 文件。
+This project is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) file.
 
-## 🙏 致谢
+## Acknowledgments
 
-感谢 Google DeepMind 提供的 AlphaGenome API 和开源社区的支持。 
+Thank you to Google DeepMind for providing the AlphaGenome API and the open-source community for support. 

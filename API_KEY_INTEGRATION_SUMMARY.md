@@ -2,7 +2,7 @@
 
 ## 已完成的工作
 
-### 1. 核心功能实现 ✅
+### 1. 核心功能实现 
 
 #### 环境变量配置
 - 支持通过环境变量配置 API key
@@ -23,7 +23,7 @@ API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")
 - 支持 Authorization Bearer 和自定义 header 格式
 - 智能处理有无 API key 的情况
 
-### 2. 方法更新 ✅
+### 2. 方法更新 
 
 所有 gRPC 方法都已更新为支持 API key：
 
@@ -32,7 +32,7 @@ API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")
 - `PredictVariant` - 单次请求，支持 API key
 - `ScoreInterval` - 单次请求，支持 API key
 
-### 3. 测试验证 ✅
+### 3. 测试验证 
 
 #### 单元测试
 - 所有单元测试通过
@@ -45,7 +45,7 @@ API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")
 - 验证请求头构建
 - 验证 HTTP 请求发送
 
-### 4. 文档和配置 ✅
+### 4. 文档和配置 
 
 #### 配置文件
 - `config_example.env` - 环境变量配置示例
@@ -108,17 +108,17 @@ python -m pytest src/alphagenome/communication_proxy_test.py -v
 ## 验证结果
 
 ### 测试状态
-- ✅ 单元测试：8/8 通过
-- ✅ API key 配置测试：通过
-- ✅ 请求头构建测试：通过
-- ✅ HTTP 请求测试：通过
+- 单元测试：8/8 通过
+- API key 配置测试：通过
+- 请求头构建测试：通过
+- HTTP 请求测试：通过
 
 ### 功能验证
-- ✅ 环境变量读取正确
-- ✅ API key 正确添加到请求头
-- ✅ 支持 Bearer token 格式
-- ✅ 无 API key 时正常工作
-- ✅ 有 API key 时正确转发
+- 环境变量读取正确
+- API key 正确添加到请求头
+- 支持 Bearer token 格式
+- 无 API key 时正常工作
+- 有 API key 时正确转发
 
 ## 下一步建议
 

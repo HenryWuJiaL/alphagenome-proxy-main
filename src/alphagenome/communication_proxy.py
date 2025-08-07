@@ -6,17 +6,17 @@ import os
 from google.protobuf.json_format import MessageToDict, ParseDict
 from src.alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
-# 配置日志
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 配置项
+# Configuration
 JSON_SERVICE_BASE_URL = os.getenv("JSON_SERVICE_BASE_URL", "http://127.0.0.1:8000")
 API_KEY = os.getenv("ALPHAGENOME_API_KEY", "")
-API_KEY_HEADER = os.getenv("API_KEY_HEADER", "Authorization")  # 默认使用 Authorization header
-API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")  # 默认使用 Bearer 前缀
+API_KEY_HEADER = os.getenv("API_KEY_HEADER", "Authorization")  # Default to Authorization header
+API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")  # Default to Bearer prefix
 
-# 检查API key配置
+# Check API key configuration
 if API_KEY:
     logger.info(f"API key configured, will be sent in {API_KEY_HEADER} header")
 else:
@@ -24,7 +24,7 @@ else:
 
 
 def _get_headers():
-    """构建包含API key的请求头"""
+    """Build request headers including API key"""
     headers = {
         'Content-Type': 'application/json',
     }
@@ -42,11 +42,11 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
     def PredictSequence(self, request_iterator, context):
         logging.info("Proxying streaming PredictSequence request")
         try:
-            # 循环处理客户端发来的每一个请求
+            # Process each request from the client
             for request in request_iterator:
                 request_dict = MessageToDict(request, preserving_proto_field_name=True)
                 
-                # 你的截图显示这里之前指向 /predict_variant，这是正确的
+                # Your screenshot shows this was previously pointing to /predict_variant, which is correct
                 json_service_url = f"{JSON_SERVICE_BASE_URL}/predict_variant" 
                 
                 headers = _get_headers()
@@ -57,18 +57,18 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
                 grpc_response = dna_model_pb2.PredictSequenceResponse()
                 ParseDict(json_response_data, grpc_response)
                 
-                # 使用 yield 来流式地返回每一个响应
+                # Use yield to stream each response
                 yield grpc_response
         except Exception as e:
             logging.error(f"Error in PredictSequence stream: {e}")
             context.set_details(f"Error in PredictSequence stream: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
 
-    # --- 也要替换这个方法 ---
+    # --- Also need to replace this method ---
     def PredictInterval(self, request_iterator, context):
         logging.info("Proxying streaming PredictInterval request")
         try:
-            # 循环处理客户端发来的每一个请求
+            # Process each request from the client
             for request in request_iterator:
                 request_dict = MessageToDict(request, preserving_proto_field_name=True)
                 json_service_url = f"{JSON_SERVICE_BASE_URL}/predict_interval"
@@ -81,7 +81,7 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
                 grpc_response = dna_model_pb2.PredictIntervalResponse()
                 ParseDict(json_response_data, grpc_response)
 
-                # 使用 yield 来流式地返回每一个响应
+                # Use yield to stream each response
                 yield grpc_response
         except Exception as e:
             logging.error(f"Error in PredictInterval stream: {e}")

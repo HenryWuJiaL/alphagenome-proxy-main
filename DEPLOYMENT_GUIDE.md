@@ -70,9 +70,9 @@ pip install -r requirements.txt
 - **网络**: 稳定的互联网连接
 
 ### 支持的操作系统
-- ✅ **Linux**: Ubuntu 18.04+, CentOS 7+, RHEL 7+
-- ✅ **macOS**: 10.14+ (Mojave+)
-- ✅ **Windows**: Windows 10+ (WSL2 推荐)
+- **Linux**: Ubuntu 18.04+, CentOS 7+, RHEL 7+
+- **macOS**: 10.14+ (Mojave+)
+- **Windows**: Windows 10+ (WSL2 推荐)
 
 ## 本地开发环境
 

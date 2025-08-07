@@ -1,139 +1,139 @@
-# 🚀 GitHub 项目结构指南
+# GitHub 项目结构指南
 
 ## 📁 **推荐的项目结构**
 
 ```
 alphagenome-proxy/
-├── 📄 README.md                    # 项目介绍和快速开始
-├── 📄 LICENSE                      # MIT 或 Apache 2.0 许可证
-├── 📄 .gitignore                   # Git 忽略文件
-├── 📄 requirements.txt             # Python 依赖
-├── 📄 Dockerfile                   # 容器配置
-├── 📄 docker-compose.yml           # 本地开发环境
-├── 📄 pyproject.toml               # 项目配置（可选）
-├── 📄 setup.py                     # 安装配置（可选）
+├── README.md                    # 项目介绍和快速开始
+├── LICENSE                      # MIT 或 Apache 2.0 许可证
+├── .gitignore                   # Git 忽略文件
+├── requirements.txt             # Python 依赖
+├── Dockerfile                   # 容器配置
+├── docker-compose.yml           # 本地开发环境
+├── pyproject.toml               # 项目配置（可选）
+├── setup.py                     # 安装配置（可选）
 │
 ├── 📁 src/                         # 源代码
 │   └── 📁 alphagenome_proxy/
-│       ├── 📄 __init__.py
-│       ├── 📄 main.py              # FastAPI 主服务
-│       ├── 📄 client.py            # 客户端类
-│       ├── 📄 config.py            # 配置管理
-│       ├── 📄 utils.py             # 工具函数
-│       ├── 📄 protos/              # protobuf 定义
-│       │   ├── 📄 __init__.py
-│       │   ├── 📄 dna_model.proto
-│       │   ├── 📄 dna_model_service.proto
-│       │   ├── 📄 dna_model_pb2.py
-│       │   ├── 📄 dna_model_service_pb2.py
-│       │   └── 📄 dna_model_service_pb2_grpc.py
+│       ├── __init__.py
+│       ├── main.py              # FastAPI 主服务
+│       ├── client.py            # 客户端类
+│       ├── config.py            # 配置管理
+│       ├── utils.py             # 工具函数
+│       ├── protos/              # protobuf 定义
+│       │   ├── __init__.py
+│       │   ├── dna_model.proto
+│       │   ├── dna_model_service.proto
+│       │   ├── dna_model_pb2.py
+│       │   ├── dna_model_service_pb2.py
+│       │   └── dna_model_service_pb2_grpc.py
 │       └── 📁 models/              # 模型相关
-│           ├── 📄 __init__.py
-│           └── 📄 proxy_client.py
+│           ├── __init__.py
+│           └── proxy_client.py
 │
 ├── 📁 deployment/                  # 部署配置
 │   ├── 📁 gcp/                     # Google Cloud 部署
-│   │   ├── 📄 deploy.sh            # 一键部署脚本
-│   │   ├── 📄 service.yaml         # Cloud Run 配置
-│   │   └── 📄 terraform/           # Terraform 配置（可选）
+│   │   ├── deploy.sh            # 一键部署脚本
+│   │   ├── service.yaml         # Cloud Run 配置
+│   │   └── terraform/           # Terraform 配置（可选）
 │   ├── 📁 docker/                  # Docker 部署
-│   │   └── 📄 docker-compose.prod.yml
+│   │   └── docker-compose.prod.yml
 │   └── 📁 kubernetes/              # Kubernetes 部署
-│       ├── 📄 deployment.yaml
-│       └── 📄 service.yaml
+│       ├── deployment.yaml
+│       └── service.yaml
 │
 ├── 📁 examples/                    # 使用示例
-│   ├── 📄 basic_usage.py           # 基础使用
-│   ├── 📄 comparison.py            # 与官方对比
-│   ├── 📄 batch_processing.py      # 批量处理
+│   ├── basic_usage.py           # 基础使用
+│   ├── comparison.py            # 与官方对比
+│   ├── batch_processing.py      # 批量处理
 │   └── 📁 client_examples/
-│       ├── 📄 python_client.py
-│       ├── 📄 grpc_client.py
-│       └── 📄 rest_client.py
+│       ├── python_client.py
+│       ├── grpc_client.py
+│       └── rest_client.py
 │
 ├── 📁 tests/                       # 测试文件
-│   ├── 📄 __init__.py
-│   ├── 📄 test_service.py          # 服务测试
-│   ├── 📄 test_client.py           # 客户端测试
-│   ├── 📄 test_deployment.py       # 部署测试
+│   ├── __init__.py
+│   ├── test_service.py          # 服务测试
+│   ├── test_client.py           # 客户端测试
+│   ├── test_deployment.py       # 部署测试
 │   └── 📁 integration/             # 集成测试
-│       └── 📄 test_full_workflow.py
+│       └── test_full_workflow.py
 │
 ├── 📁 docs/                        # 文档
-│   ├── 📄 installation.md          # 安装指南
-│   ├── 📄 quick_start.md           # 快速开始
-│   ├── 📄 deployment.md            # 部署指南
-│   ├── 📄 api_reference.md         # API 参考
-│   ├── 📄 examples.md              # 示例文档
-│   ├── 📄 troubleshooting.md       # 故障排除
+│   ├── installation.md          # 安装指南
+│   ├── quick_start.md           # 快速开始
+│   ├── deployment.md            # 部署指南
+│   ├── api_reference.md         # API 参考
+│   ├── examples.md              # 示例文档
+│   ├── troubleshooting.md       # 故障排除
 │   └── 📁 images/                  # 文档图片
-│       ├── 📄 architecture.png
-│       └── 📄 deployment-flow.png
+│       ├── architecture.png
+│       └── deployment-flow.png
 │
 ├── 📁 scripts/                     # 辅助脚本
-│   ├── 📄 setup.sh                 # 环境设置
-│   ├── 📄 test_deployment.sh       # 部署测试
-│   ├── 📄 generate_protos.sh       # 生成 protobuf
-│   └── 📄 benchmark.sh             # 性能测试
+│   ├── setup.sh                 # 环境设置
+│   ├── test_deployment.sh       # 部署测试
+│   ├── generate_protos.sh       # 生成 protobuf
+│   └── benchmark.sh             # 性能测试
 │
 └── 📁 .github/                     # GitHub 配置
     ├── 📁 workflows/               # GitHub Actions
-    │   ├── 📄 ci.yml               # 持续集成
-    │   ├── 📄 deploy.yml           # 自动部署
-    │   └── 📄 release.yml          # 发布流程
-    ├── 📄 ISSUE_TEMPLATE/          # Issue 模板
-    │   ├── 📄 bug_report.md
-    │   └── 📄 feature_request.md
-    └── 📄 pull_request_template.md # PR 模板
+    │   ├── ci.yml               # 持续集成
+    │   ├── deploy.yml           # 自动部署
+    │   └── release.yml          # 发布流程
+    ├── ISSUE_TEMPLATE/          # Issue 模板
+    │   ├── bug_report.md
+    │   └── feature_request.md
+    └── pull_request_template.md # PR 模板
 ```
 
 ## 🚫 **不要上传的文件**
 
 ### 1. **AlphaGenome 官方包文件**
 ```
-❌ src/alphagenome/                 # 官方包（避免版权问题）
-❌ venv/                           # 虚拟环境
-❌ .venv/                          # 虚拟环境
-❌ env/                            # 虚拟环境
-❌ node_modules/                   # Node.js 依赖
-❌ dist/                           # 构建输出
-❌ build/                          # 构建输出
+ src/alphagenome/                 # 官方包（避免版权问题）
+ venv/                           # 虚拟环境
+ .venv/                          # 虚拟环境
+ env/                            # 虚拟环境
+ node_modules/                   # Node.js 依赖
+ dist/                           # 构建输出
+ build/                          # 构建输出
 ```
 
 ### 2. **敏感信息和配置**
 ```
-❌ .env                            # 环境变量
-❌ .env.local                      # 本地环境变量
-❌ .env.production                 # 生产环境变量
-❌ config/secrets.json             # 密钥文件
-❌ *.key                           # 密钥文件
-❌ *.pem                           # 证书文件
-❌ deployment-key.json             # 服务账号密钥
+ .env                            # 环境变量
+ .env.local                      # 本地环境变量
+ .env.production                 # 生产环境变量
+ config/secrets.json             # 密钥文件
+ *.key                           # 密钥文件
+ *.pem                           # 证书文件
+ deployment-key.json             # 服务账号密钥
 ```
 
 ### 3. **临时文件和缓存**
 ```
-❌ __pycache__/                    # Python 缓存
-❌ *.pyc                           # Python 编译文件
-❌ *.pyo                           # Python 优化文件
-❌ .pytest_cache/                  # pytest 缓存
-❌ .coverage                        # 覆盖率文件
-❌ logs/                           # 日志文件
-❌ tmp/                            # 临时文件
-❌ temp/                           # 临时文件
+ __pycache__/                    # Python 缓存
+ *.pyc                           # Python 编译文件
+ *.pyo                           # Python 优化文件
+ .pytest_cache/                  # pytest 缓存
+ .coverage                        # 覆盖率文件
+ logs/                           # 日志文件
+ tmp/                            # 临时文件
+ temp/                           # 临时文件
 ```
 
 ### 4. **IDE 和编辑器文件**
 ```
-❌ .vscode/                        # VS Code 配置
-❌ .idea/                          # IntelliJ 配置
-❌ *.swp                           # Vim 临时文件
-❌ *.swo                           # Vim 临时文件
-❌ .DS_Store                       # macOS 系统文件
-❌ Thumbs.db                       # Windows 缩略图
+ .vscode/                        # VS Code 配置
+ .idea/                          # IntelliJ 配置
+ *.swp                           # Vim 临时文件
+ *.swo                           # Vim 临时文件
+ .DS_Store                       # macOS 系统文件
+ Thumbs.db                       # Windows 缩略图
 ```
 
-## 📄 **必需的文件**
+## **必需的文件**
 
 ### 1. **README.md** - 项目介绍
 ```markdown
@@ -143,13 +143,13 @@ alphagenome-proxy/
 
 ## ✨ 特性
 
-- 🚀 **高性能**: 响应时间优于官方客户端
-- 💰 **低成本**: 几乎免费（学生免费额度）
-- 🔧 **易部署**: 一键部署到 Google Cloud
-- 📊 **完整功能**: 支持所有核心 API
-- 🎓 **学习价值**: 了解微服务和云部署
+- **高性能**: 响应时间优于官方客户端
+- **低成本**: 几乎免费（学生免费额度）
+- **易部署**: 一键部署到 Google Cloud
+- **完整功能**: 支持所有核心 API
+- **学习价值**: 了解微服务和云部署
 
-## 🚀 快速开始
+## 快速开始
 
 ```bash
 # 克隆项目
@@ -163,18 +163,18 @@ pip install -r requirements.txt
 python -m alphagenome_proxy.main
 ```
 
-## 📖 文档
+## 文档
 
 - [安装指南](docs/installation.md)
 - [部署指南](docs/deployment.md)
 - [API 参考](docs/api_reference.md)
 - [使用示例](docs/examples.md)
 
-## 🤝 贡献
+## 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📄 许可证
+## 许可证
 
 MIT License
 ```
@@ -321,4 +321,4 @@ git push -u origin main
 4. **性能优化**: 响应时间优于官方客户端
 5. **学习价值**: 展示微服务和云部署最佳实践
 
-**这样上传后，你的项目会更容易被发现、使用和贡献！** 🎉 
+**这样上传后，你的项目会更容易被发现、使用和贡献！** 
