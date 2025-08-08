@@ -4,6 +4,9 @@ grpcio-tools==1.73.1
 protobuf==6.31.1
 requests==2.31.0
 
+# Image processing support
+Pillow==10.2.0
+
 # Testing dependencies
 pytest==8.4.1
 pytest-mock==3.14.1
