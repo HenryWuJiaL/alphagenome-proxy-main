@@ -4,38 +4,38 @@
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/tests-passing-green.svg)](https://github.com/your-repo/alphagenome-proxy)
 
-一个高性能的 gRPC 到 JSON 代理服务，用于连接 Google DeepMind 的 AlphaGenome API。
+A high-performance gRPC to JSON proxy service for connecting to Google DeepMind's AlphaGenome API.
 
-## 🚀 快速开始
+## Quick Start
 
-### 5分钟快速部署
+### Quick Deployment
 
 ```bash
-# 1. 克隆项目
+# 1. Clone the project
 git clone <your-repo-url>
 cd alphagenome-main
 
-# 2. 配置 API Key
+# 2. Configure API Key
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 3. 启动服务
+# 3. Start the service
 docker-compose up -d
 
-# 4. 验证安装
+# 4. Validate the installation
 python test_end_to_end.py
 ```
 
-### 基本使用
+### Basic Usage
 
 ```python
 import grpc
 from alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
-# 连接服务
+# Connect to the service
 channel = grpc.insecure_channel('localhost:50051')
 stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
 
-# 预测变异
+# Predict a variant
 request = dna_model_pb2.PredictVariantRequest()
 request.interval.chromosome = "chr22"
 request.interval.start = 35677410
@@ -47,28 +47,28 @@ request.variant.alternate_bases = "C"
 request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
 
 response = stub.PredictVariant(request)
-print(f"预测结果: {response}")
+print(f"Prediction result: {response}")
 ```
 
-## ✨ 主要功能
+## Main Features
 
-- 🔄 **gRPC ↔ JSON 转换**：自动转换 gRPC 请求到 JSON 格式
-- 🔐 **API Key 管理**：安全地处理 API 密钥
-- 📡 **流式处理**：支持大规模数据的流式处理
-- 🐳 **容器化部署**：Docker 一键部署
-- ☁️ **多云支持**：AWS、Google Cloud、Kubernetes
-- 🧪 **完整测试**：单元测试、端到端测试、集成测试
+- gRPC ↔ JSON Conversion: Automatically converts gRPC requests to JSON format
+- API Key Management: Securely handles API keys
+- Streaming: Supports streaming for large-scale data
+- Containerized Deployment: One-click deployment with Docker
+- Multi-Cloud Support: AWS, Google Cloud, Kubernetes
+- Comprehensive Testing: Unit tests, end-to-end tests, integration tests
 
-## 📊 支持的 API
+## Supported APIs
 
-| 方法 | 类型 | 描述 |
+| Method | Type | Description |
 |------|------|------|
-| `PredictVariant` | 非流式 | 预测基因组变异的影响 |
-| `ScoreInterval` | 非流式 | 评分基因组区间 |
-| `PredictSequence` | 流式 | 预测 DNA 序列 |
-| `PredictInterval` | 流式 | 预测基因组区间 |
+| `PredictVariant` | Non-streaming | Predicts the impact of a genomic variant |
+| `ScoreInterval` | Non-streaming | Scores a genomic interval |
+| `PredictSequence` | Streaming | 	Predicts a DNA sequence |
+| `PredictInterval` | Streaming | Predicts a genomic interval |
 
-## 🏗️ 架构
+## Architecture
 
 ```
 ┌─────────────────┐    gRPC    ┌──────────────────┐    HTTP/JSON    ┌─────────────────┐
@@ -84,26 +84,18 @@ print(f"预测结果: {response}")
                                 └──────────────────┘
 ```
 
-## 📚 文档
+## Documentation
 
-- **[快速入门](QUICK_START.md)** - 5分钟快速部署指南
-- **[用户指南](USER_GUIDE.md)** - 完整的使用文档
-- **[API 参考](API_REFERENCE.md)** - 详细的 API 文档
-- **[部署指南](DEPLOYMENT_GUIDE.md)** - 多平台部署说明
-- **[测试指南](TESTING_GUIDE.md)** - 测试和验证方法
+- **[Quick Start](QUICK_START.md)** - quick deployment guide
+- **[User Guide](USER_GUIDE.md)** - Complete usage documentation
+- **[API Reference ](API_REFERENCE.md)** - Detailed API documentation
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Multi-platform deployment instructions
+- **[Testing Guide](TESTING_GUIDE.md)** - Testing and validation methods
 
-## 🧪 测试状态
 
-| 测试类型 | 状态 | 通过率 |
-|---------|------|--------|
-| 单元测试 | ✅ 通过 | 100% (8/8) |
-| 端到端测试 | ✅ 通过 | 100% (4/4) |
-| Docker 服务 | ✅ 运行 | 100% (2/2) |
-| API Key 集成 | ✅ 工作 | 100% |
+## Deployment Options
 
-## 🚀 部署选项
-
-### 本地 Docker
+### Local Docker
 
 ```bash
 docker-compose up -d
@@ -141,107 +133,67 @@ export API_KEY_HEADER=Authorization
 export API_KEY_PREFIX=Bearer
 ```
 
-### 端口配置
+### Configuration
 
-- **gRPC 服务**: `localhost:50051`
-- **健康检查**: `localhost:8000/health`
+- **gRPC Service**: `localhost:50051`
+- **Health Check**: `localhost:8000/health`
 
-## 🛠️ 开发
 
-### 环境设置
+### Development
 
 ```bash
-# 创建虚拟环境
+# Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-# 或
+# or
 venv\Scripts\activate  # Windows
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 安装开发依赖
+# Install development dependencies
 pip install -r requirements-dev.txt
 ```
 
-### 运行测试
+### Running Tests
 
 ```bash
-# 单元测试
+# Unit tests
 python -m pytest src/alphagenome/communication_proxy_test.py -v
 
-# 端到端测试
+# End-to-end tests
 python test_end_to_end.py
 
-# 所有测试
+# All tests
 python -m pytest
 ```
 
-### 代码质量
 
-```bash
-# 代码格式化
-black src/ tests/
 
-# 代码检查
-flake8 src/ tests/
 
-# 类型检查
-mypy src/
-```
+## Performance
 
-## 📈 性能
+- **Latency**: < 100ms (Local Network)
+- **Throughput**: 1000+ requests/second
+- **Memory Usage**: < 100MB
+- **CPU Usage**: < 10%
 
-- **延迟**: < 100ms (本地网络)
-- **吞吐量**: 1000+ 请求/秒
-- **内存使用**: < 100MB
-- **CPU 使用**: < 10%
 
-## 🔒 安全
+## License
 
-- ✅ API Key 安全存储
-- ✅ 请求头认证
-- ✅ 日志脱敏
-- ✅ 网络安全配置
-- ✅ 容器安全最佳实践
+This project is licensed under the Apache 2.0 License. See the LICENSE file for details.
 
-## 🤝 贡献
-
-我们欢迎所有形式的贡献！
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
-
-### 开发指南
-
-- 遵循 PEP 8 代码风格
-- 添加适当的测试
-- 更新文档
-- 确保所有测试通过
-
-## 📄 许可证
-
-本项目遵循 Apache 2.0 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 🙏 致谢
+## Acknowledgments
 
 - [Google DeepMind](https://github.com/google-deepmind/alphagenome) - AlphaGenome API
-- [gRPC](https://grpc.io/) - 高性能 RPC 框架
-- [Docker](https://www.docker.com/) - 容器化平台
-- 开源社区的支持
+- [gRPC](https://grpc.io/) - High-performance RPC framework
+- [Docker](https://www.docker.com/) - Containerization platform
+- The open-source community for their support
 
-## 📞 支持
 
-- 📖 [文档](USER_GUIDE.md)
-- 🐛 [问题报告](https://github.com/your-repo/alphagenome-proxy/issues)
-- 💬 [讨论](https://github.com/your-repo/alphagenome-proxy/discussions)
-- 📧 [邮件支持](mailto:support@your-domain.com)
 
 ---
 
-**⭐ 如果这个项目对你有帮助，请给我们一个星标！**
+** If this project was helpful, please give it a star! **
 
-**🎉 感谢使用 AlphaGenome 通信代理！**
+** Thank you for using the AlphaGenome Communication Proxy! **
