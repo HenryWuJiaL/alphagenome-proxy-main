@@ -1,4 +1,4 @@
-# AlphaGenome 通信代理
+# AlphaGenome Proxy
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
@@ -119,15 +119,15 @@ docker-compose up -d
 ./scripts/deploy.sh kubernetes
 ```
 
-## 🔧 配置
+## Configuration
 
-### 环境变量
+### Environment Variables
 
 ```bash
-# 必需
+# Required
 export ALPHAGENOME_API_KEY=your_api_key_here
 
-# 可选
+# Optional
 export JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com
 export API_KEY_HEADER=Authorization
 export API_KEY_PREFIX=Bearer
