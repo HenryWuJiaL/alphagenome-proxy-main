@@ -1,56 +1,56 @@
-# 🌤 AlphaGenome 通信代理 - 云部署指南
+# AlphaGenome Communication Proxy - Cloud Deployment Guide
 
-## 📋 部署概览
+## Deployment Overview
 
-本指南将帮助你将 AlphaGenome 通信代理部署到各种云平台：
+This guide will help you deploy the AlphaGenome communication proxy to various cloud platforms:
 
-- **AWS** - 使用 ECS + CloudFormation
-- **Google Cloud** - 使用 Cloud Run
-- **Azure** - 使用 Container Instances
-- **Kubernetes** - 通用 Kubernetes 集群
+- **AWS** - Using ECS + CloudFormation
+- **Google Cloud** - Using Cloud Run
+- **Azure** - Using Container Instances
+- **Kubernetes** - Generic Kubernetes cluster
 
-## 快速部署
+## Quick Deployment
 
-### 一键部署脚本
+### One-click Deployment Script
 
 ```bash
-# 使用自动化部署脚本
-./scripts/deploy.sh aws          # AWS 部署
-./scripts/deploy.sh gcp          # Google Cloud 部署
-./scripts/deploy.sh azure        # Azure 部署
-./scripts/deploy.sh kubernetes   # Kubernetes 部署
+# Use automated deployment script
+./scripts/deploy.sh aws          # AWS deployment
+./scripts/deploy.sh gcp          # Google Cloud deployment
+./scripts/deploy.sh azure        # Azure deployment
+./scripts/deploy.sh kubernetes   # Kubernetes deployment
 ```
 
-##  AWS 部署
+## AWS Deployment
 
-### 前置要求
+### Prerequisites
 
 ```bash
-# 1. 安装 AWS CLI
+# 1. Install AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 
-# 2. 配置 AWS 凭证
+# 2. Configure AWS credentials
 aws configure
 # AWS Access Key ID: your_access_key
 # AWS Secret Access Key: your_secret_key
 # Default region name: us-east-1
 # Default output format: json
 
-# 3. 验证配置
+# 3. Verify configuration
 aws sts get-caller-identity
 ```
 
-### 方法一：使用 CloudFormation（推荐）
+### Method 1: Using CloudFormation (Recommended)
 
 ```bash
-# 1. 设置环境变量
+# 1. Set environment variables
 export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
 export AWS_REGION=us-east-1
 export STACK_NAME=alphagenome-proxy
 
-# 2. 创建 CloudFormation 堆栈
+# 2. Create CloudFormation stack
 aws cloudformation create-stack \
   --stack-name $STACK_NAME \
   --template-body file://deploy/aws/cloudformation.yaml \
@@ -58,22 +58,22 @@ aws cloudformation create-stack \
   --capabilities CAPABILITY_IAM \
   --region $AWS_REGION
 
-# 3. 等待部署完成
+# 3. Wait for deployment to complete
 aws cloudformation wait stack-create-complete \
   --stack-name $STACK_NAME \
   --region $AWS_REGION
 
-# 4. 获取服务 URL
+# 4. Get service URL
 aws cloudformation describe-stacks \
   --stack-name $STACK_NAME \
   --query 'Stacks[0].Outputs[?OutputKey==`ServiceURL`].OutputValue' \
   --output text
 ```
 
-### 方法二：使用 ECS CLI
+### Method 2: Using ECS CLI
 
 ```bash
-# 1. 构建并推送镜像到 ECR
+# 1. Build and push image to ECR
 aws ecr create-repository --repository-name alphagenome-proxy --region $AWS_REGION
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
@@ -81,7 +81,7 @@ docker build -t alphagenome-proxy .
 docker tag alphagenome-proxy:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/alphagenome-proxy:latest
 docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/alphagenome-proxy:latest
 
-# 2. 创建 ECS 服务
+# 2. Create ECS service
 aws ecs create-service \
   --cluster alphagenome-cluster \
   --service-name alphagenome-proxy \
@@ -91,175 +91,387 @@ aws ecs create-service \
   --network-configuration "awsvpcConfiguration={subnets=[subnet-12345,subnet-67890],securityGroups=[sg-12345],assignPublicIp=ENABLED}"
 ```
 
-### AWS 部署架构
+### AWS Deployment Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Application   │───►│   Application   │───►│   AlphaGenome   │
 │   Load Balancer │    │   Load Balancer │    │      API        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐
-│   ECS Service   │    │   ECS Service   │
-│   (Task 1)      │    │   (Task 2)      │
-└─────────────────┘    └─────────────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐
-│   CloudWatch    │    │   CloudWatch    │
-│     Logs        │    │     Logs        │
-└─────────────────┘    └─────────────────┘
 ```
 
-##  Google Cloud 部署
+### AWS CloudFormation Template
 
-### 前置要求
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AlphaGenome Proxy Service on ECS Fargate'
+
+Parameters:
+  ApiKey:
+    Type: String
+    Description: AlphaGenome API Key
+    NoEcho: true
+
+Resources:
+  # VPC and Networking
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: AlphaGenomeProxyVPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: AlphaGenomeProxyIGW
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: AlphaGenomeProxyRouteTable
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref RouteTable
+
+  # Security Groups
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ECS tasks
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+  # ECR Repository
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: alphagenome-proxy
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 5 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 5
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
+  # ECS Cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: alphagenome-cluster
+      CapacityProviders:
+        - FARGATE
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+
+  # Task Definition
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: alphagenome-proxy
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
+      ContainerDefinitions:
+        - Name: alphagenome-proxy
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/alphagenome-proxy:latest"
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+          Environment:
+            - Name: ALPHAGENOME_API_KEY
+              Value: !Ref ApiKey
+            - Name: JSON_SERVICE_BASE_URL
+              Value: https://api.alphagenome.google.com
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+
+  # IAM Roles
+  ECSExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+
+  # CloudWatch Logs
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/alphagenome-proxy
+      RetentionInDays: 7
+
+  # Application Load Balancer
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: alphagenome-proxy-alb
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: alphagenome-proxy-tg
+      Port: 8080
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VPC
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+
+  # ECS Service
+  ECSService:
+    Type: AWS::ECS::Service
+    DependsOn: ALBListener
+    Properties:
+      ServiceName: alphagenome-proxy
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref ECSSecurityGroup
+          Subnets:
+            - !Ref PublicSubnet1
+            - !Ref PublicSubnet2
+      LoadBalancers:
+        - ContainerName: alphagenome-proxy
+          ContainerPort: 8080
+          TargetGroupArn: !Ref ALBTargetGroup
+
+Outputs:
+  ServiceURL:
+    Description: URL of the AlphaGenome proxy service
+    Value: !Sub "http://${ALB.DNSName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-ServiceURL"
+
+  ECRRepositoryURI:
+    Description: ECR repository URI
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/alphagenome-proxy"
+    Export:
+      Name: !Sub "${AWS::StackName}-ECRRepositoryURI"
+```
+
+## Google Cloud Deployment
+
+### Prerequisites
 
 ```bash
-# 1. 安装 Google Cloud SDK
+# 1. Install Google Cloud CLI
 curl https://sdk.cloud.google.com | bash
 exec -l $SHELL
-
-# 2. 初始化项目
 gcloud init
-gcloud auth application-default login
 
-# 3. 设置项目
-export PROJECT_ID=your-project-id
-gcloud config set project $PROJECT_ID
-
-# 4. 启用必要 API
+# 2. Enable required APIs
 gcloud services enable run.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
 gcloud services enable containerregistry.googleapis.com
+
+# 3. Configure Docker authentication
+gcloud auth configure-docker
 ```
 
-### 方法一：使用 Cloud Run（推荐）
+### Method 1: Using Cloud Run (Recommended)
 
 ```bash
-# 1. 构建并推送镜像
+# 1. Set environment variables
+export PROJECT_ID=$(gcloud config get-value project)
+export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
+export REGION=us-central1
+
+# 2. Build and push Docker image
 docker build -t gcr.io/$PROJECT_ID/alphagenome-proxy .
 docker push gcr.io/$PROJECT_ID/alphagenome-proxy
 
-# 2. 创建 Secret
-echo -n "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw" | \
-  gcloud secrets create alphagenome-api-key --data-file=-
-
-# 3. 部署到 Cloud Run
+# 3. Deploy to Cloud Run
 gcloud run deploy alphagenome-proxy \
   --image gcr.io/$PROJECT_ID/alphagenome-proxy \
   --platform managed \
-  --region us-central1 \
+  --region $REGION \
   --allow-unauthenticated \
-  --set-secrets ALPHAGENOME_API_KEY=alphagenome-api-key:latest \
   --set-env-vars JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com \
-  --port 50051 \
+  --set-env-vars ALPHAGENOME_API_KEY=$ALPHAGENOME_API_KEY \
+  --max-instances 10 \
   --memory 512Mi \
-  --cpu 1 \
-  --max-instances 10
+  --cpu 1
 
-# 4. 获取服务 URL
+# 4. Get service URL
 gcloud run services describe alphagenome-proxy \
-  --region us-central1 \
+  --region $REGION \
   --format 'value(status.url)'
 ```
 
-### 方法二：使用 GKE
+### Method 2: Using GKE (Kubernetes)
 
 ```bash
-# 1. 创建 GKE 集群
+# 1. Create GKE cluster
 gcloud container clusters create alphagenome-cluster \
   --zone us-central1-a \
   --num-nodes 3 \
-  --machine-type e2-standard-2
+  --machine-type e2-medium \
+  --enable-autoscaling \
+  --min-nodes 1 \
+  --max-nodes 10
 
-# 2. 获取集群凭证
+# 2. Get cluster credentials
 gcloud container clusters get-credentials alphagenome-cluster \
   --zone us-central1-a
 
-# 3. 应用 Kubernetes 配置
-kubectl apply -f deploy/kubernetes/deployment.yaml
-kubectl apply -f deploy/kubernetes/service.yaml
-kubectl apply -f deploy/kubernetes/ingress.yaml
-
-# 4. 检查部署状态
-kubectl get pods
-kubectl get services
-```
-
-##  Azure 部署
-
-### 前置要求
-
-```bash
-# 1. 安装 Azure CLI
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-# 2. 登录 Azure
-az login
-
-# 3. 设置订阅
-az account set --subscription "your-subscription-id"
-```
-
-### 使用 Container Instances
-
-```bash
-# 1. 创建资源组
-az group create --name alphagenome-rg --location eastus
-
-# 2. 创建容器注册表
-az acr create --resource-group alphagenome-rg \
-  --name alphagenomeregistry --sku Basic
-
-# 3. 构建并推送镜像
-az acr build --registry alphagenomeregistry \
-  --image alphagenome-proxy:latest .
-
-# 4. 创建容器实例
-az container create \
-  --resource-group alphagenome-rg \
-  --name alphagenome-proxy \
-  --image alphagenomeregistry.azurecr.io/alphagenome-proxy:latest \
-  --dns-name-label alphagenome-proxy \
-  --ports 50051 \
-  --environment-variables \
-    JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com \
-    ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw \
-  --cpu 1 \
-  --memory 1
-
-# 5. 获取服务 URL
-az container show \
-  --resource-group alphagenome-rg \
-  --name alphagenome-proxy \
-  --query "ipAddress.fqdn" \
-  --output tsv
-```
-
-## ☸ Kubernetes 部署
-
-### 通用 Kubernetes 集群
-
-```bash
-# 1. 创建命名空间
+# 3. Create namespace
 kubectl create namespace alphagenome
 
-# 2. 创建 Secret
+# 4. Create secret for API key
 kubectl create secret generic alphagenome-api-key \
-  --from-literal=api-key=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw \
+  --from-literal=api-key=$ALPHAGENOME_API_KEY \
   --namespace alphagenome
 
-# 3. 应用部署配置
-kubectl apply -f deploy/kubernetes/deployment.yaml
-kubectl apply -f deploy/kubernetes/service.yaml
+# 5. Deploy application
+kubectl apply -f deploy/kubernetes/ -n alphagenome
 
-# 4. 检查部署状态
+# 6. Check deployment
 kubectl get pods -n alphagenome
 kubectl get services -n alphagenome
 ```
 
-### Kubernetes 配置文件
+### Google Cloud Deployment Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Client        │───►│   Cloud Run     │───►│   AlphaGenome   │
+│   Application   │    │   Service       │    │      API        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Kubernetes Deployment Files
 
 ```yaml
 # deploy/kubernetes/deployment.yaml
@@ -280,9 +492,9 @@ spec:
     spec:
       containers:
       - name: alphagenome-proxy
-        image: alphagenome-proxy:latest
+        image: gcr.io/PROJECT_ID/alphagenome-proxy:latest
         ports:
-        - containerPort: 50051
+        - containerPort: 8080
         env:
         - name: JSON_SERVICE_BASE_URL
           value: "https://api.alphagenome.google.com"
@@ -301,311 +513,467 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 50051
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /ready
-            port: 50051
+            path: /health
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
+
+---
+# deploy/kubernetes/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: alphagenome-proxy
+  namespace: alphagenome
+spec:
+  selector:
+    app: alphagenome-proxy
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+
+---
+# deploy/kubernetes/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: alphagenome-proxy-hpa
+  namespace: alphagenome
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: alphagenome-proxy
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
 ```
 
-## 配置管理
+## Azure Deployment
 
-### 环境变量配置
+### Prerequisites
 
 ```bash
-# 生产环境配置
-export ENVIRONMENT=production
-export ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
-export JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com
-export API_KEY_HEADER=Authorization
-export API_KEY_PREFIX=Bearer
-export LOG_LEVEL=INFO
-export MAX_WORKERS=10
-export REQUEST_TIMEOUT=30
+# 1. Install Azure CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# 2. Login to Azure
+az login
+
+# 3. Set subscription
+az account set --subscription "your-subscription-id"
 ```
 
-### 配置文件
-
-```yaml
-# config/production.yaml
-api:
-  host: 0.0.0.0
-  port: 50051
-  max_workers: 10
-  request_timeout: 30
-
-alphagenome:
-  api_key: ${ALPHAGENOME_API_KEY}
-  base_url: ${JSON_SERVICE_BASE_URL}
-  headers:
-    authorization: Bearer ${ALPHAGENOME_API_KEY}
-
-logging:
-  level: INFO
-  format: json
-  output: stdout
-
-monitoring:
-  enabled: true
-  metrics_port: 9090
-  health_check_path: /health
-```
-
-## 监控和日志
-
-### CloudWatch 监控（AWS）
+### Method 1: Using Container Instances
 
 ```bash
-# 创建 CloudWatch 仪表板
-aws cloudwatch put-dashboard \
-  --dashboard-name alphagenome-proxy \
-  --dashboard-body file://monitoring/cloudwatch-dashboard.json
+# 1. Create resource group
+az group create --name alphagenome-rg --location eastus
 
-# 设置告警
-aws cloudwatch put-metric-alarm \
-  --alarm-name alphagenome-proxy-high-cpu \
-  --alarm-description "High CPU usage" \
-  --metric-name CPUUtilization \
-  --namespace AWS/ECS \
-  --statistic Average \
-  --period 300 \
-  --threshold 80 \
-  --comparison-operator GreaterThanThreshold
+# 2. Create container registry
+az acr create --resource-group alphagenome-rg \
+  --name alphagenomeregistry --sku Basic
+
+# 3. Build and push image
+az acr build --registry alphagenomeregistry \
+  --image alphagenome-proxy:latest .
+
+# 4. Deploy container instance
+az container create \
+  --resource-group alphagenome-rg \
+  --name alphagenome-proxy \
+  --image alphagenomeregistry.azurecr.io/alphagenome-proxy:latest \
+  --dns-name-label alphagenome-proxy \
+  --ports 8080 \
+  --environment-variables \
+    JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com \
+    ALPHAGENOME_API_KEY=AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw
+
+# 5. Get service URL
+az container show \
+  --resource-group alphagenome-rg \
+  --name alphagenome-proxy \
+  --query "ipAddress.fqdn" \
+  --output tsv
 ```
 
-### Stackdriver 监控（GCP）
+### Method 2: Using AKS (Kubernetes)
 
 ```bash
-# 启用 Stackdriver 监控
-gcloud services enable monitoring.googleapis.com
+# 1. Create AKS cluster
+az aks create \
+  --resource-group alphagenome-rg \
+  --name alphagenome-cluster \
+  --node-count 3 \
+  --enable-addons monitoring \
+  --generate-ssh-keys
 
-# 创建监控策略
-gcloud alpha monitoring policies create \
-  --policy-from-file=monitoring/stackdriver-policy.yaml
+# 2. Get cluster credentials
+az aks get-credentials \
+  --resource-group alphagenome-rg \
+  --name alphagenome-cluster
+
+# 3. Deploy using Kubernetes manifests
+kubectl create namespace alphagenome
+kubectl create secret generic alphagenome-api-key \
+  --from-literal=api-key=$ALPHAGENOME_API_KEY \
+  --namespace alphagenome
+kubectl apply -f deploy/kubernetes/ -n alphagenome
 ```
 
-### 日志聚合
+## Kubernetes Deployment (Generic)
+
+### Prerequisites
 
 ```bash
-# 使用 Fluentd 收集日志
-kubectl apply -f monitoring/fluentd-configmap.yaml
-kubectl apply -f monitoring/fluentd-daemonset.yaml
+# 1. Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
 
-# 或使用 ELK Stack
-docker-compose -f monitoring/elk-stack.yml up -d
+# 2. Configure kubectl for your cluster
+kubectl config set-cluster your-cluster
+kubectl config set-credentials your-user
+kubectl config set-context your-context
+kubectl config use-context your-context
 ```
 
-## 安全配置
-
-### 网络安全
+### Deployment Steps
 
 ```bash
-# AWS Security Groups
-aws ec2 create-security-group \
-  --group-name alphagenome-proxy-sg \
-  --description "Security group for AlphaGenome proxy" \
-  --vpc-id vpc-12345
+# 1. Create namespace
+kubectl create namespace alphagenome
 
-aws ec2 authorize-security-group-ingress \
-  --group-id sg-12345 \
-  --protocol tcp \
-  --port 50051 \
-  --cidr 0.0.0.0/0
+# 2. Create secret for API key
+kubectl create secret generic alphagenome-api-key \
+  --from-literal=api-key=$ALPHAGENOME_API_KEY \
+  --namespace alphagenome
+
+# 3. Deploy application
+kubectl apply -f deploy/kubernetes/ -n alphagenome
+
+# 4. Check deployment
+kubectl get pods -n alphagenome
+kubectl get services -n alphagenome
 ```
 
-### 密钥管理
+## Environment Variables
+
+### Required Variables
 
 ```bash
-# AWS Secrets Manager
-aws secretsmanager create-secret \
-  --name alphagenome-api-key \
-  --description "AlphaGenome API Key" \
-  --secret-string "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw"
+# AlphaGenome API key
+ALPHAGENOME_API_KEY=your-api-key-here
 
-# Google Secret Manager
-echo -n "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw" | \
-  gcloud secrets create alphagenome-api-key --data-file=-
-
-# Azure Key Vault
-az keyvault secret set \
-  --vault-name alphagenome-vault \
-  --name alphagenome-api-key \
-  --value "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw"
+# JSON service base URL
+JSON_SERVICE_BASE_URL=https://api.alphagenome.google.com
 ```
 
-## 自动化部署
+### Optional Variables
 
-### CI/CD 流水线
+```bash
+# API key header name (default: Authorization)
+API_KEY_HEADER=Authorization
 
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to Cloud
+# API key prefix (default: Bearer )
+API_KEY_PREFIX=Bearer 
 
-on:
-  push:
-    branches: [main]
+# Service port (default: 8080)
+PORT=8080
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Build Docker image
-      run: docker build -t alphagenome-proxy .
-    
-    - name: Deploy to AWS
-      if: github.ref == 'refs/heads/main'
-      run: |
-        aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-        docker tag alphagenome-proxy:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/alphagenome-proxy:latest
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/alphagenome-proxy:latest
-        aws ecs update-service --cluster alphagenome-cluster --service alphagenome-proxy --force-new-deployment
+# Log level (default: INFO)
+LOG_LEVEL=INFO
 ```
 
-### Terraform 配置
+## Testing Deployment
 
-```hcl
-# terraform/main.tf
-provider "aws" {
-  region = "us-east-1"
+### Health Check
+
+```bash
+# Test health endpoint
+curl https://your-service-url/health
+
+# Expected response
+{
+  "status": "healthy",
+  "timestamp": "2024-01-01T00:00:00Z"
 }
-
-resource "aws_ecs_cluster" "alphagenome" {
-  name = "alphagenome-cluster"
-}
-
-resource "aws_ecs_task_definition" "alphagenome_proxy" {
-  family                   = "alphagenome-proxy"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512
-
-  container_definitions = jsonencode([
-    {
-      name  = "alphagenome-proxy"
-      image = "alphagenome-proxy:latest"
-      portMappings = [
-        {
-          containerPort = 50051
-          protocol      = "tcp"
-        }
-      ]
-      environment = [
-        {
-          name  = "ALPHAGENOME_API_KEY"
-          value = var.api_key
-        }
-      ]
-    }
-  ])
-}
 ```
 
-## 📈 性能优化
+### gRPC Test
 
-### 自动扩缩容
+```python
+import grpc
+from src.alphagenome.protos import dna_model_service_pb2, dna_model_service_pb2_grpc, dna_model_pb2
+
+# Connect to service
+credentials = grpc.ssl_channel_credentials()
+channel = grpc.secure_channel("your-service-url:443", credentials)
+stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
+
+# Test request
+request = dna_model_service_pb2.PredictVariantRequest()
+request.interval.chromosome = "chr22"
+request.interval.start = 35677410
+request.interval.end = 36725986
+request.variant.chromosome = "chr22"
+request.variant.position = 36201698
+request.variant.reference_bases = "A"
+request.variant.alternate_bases = "C"
+request.organism = dna_model_pb2.ORGANISM_HOMO_SAPIENS
+
+# Send request
+response = stub.PredictVariant(request)
+print(f"Response: {response}")
+```
+
+## Monitoring and Logging
+
+### CloudWatch (AWS)
 
 ```bash
-# AWS ECS 自动扩缩容
+# View logs
+aws logs describe-log-groups --log-group-name-prefix /ecs/alphagenome-proxy
+
+# Get log events
+aws logs get-log-events \
+  --log-group-name /ecs/alphagenome-proxy \
+  --log-stream-name ecs/alphagenome-proxy/container-id
+```
+
+### Google Cloud Logging
+
+```bash
+# View logs
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=alphagenome-proxy"
+
+# Create log sink
+gcloud logging sinks create alphagenome-proxy-sink \
+  storage.googleapis.com/projects/PROJECT_ID/buckets/alphagenome-logs \
+  --log-filter="resource.type=cloud_run_revision AND resource.labels.service_name=alphagenome-proxy"
+```
+
+### Azure Monitor
+
+```bash
+# View logs
+az monitor activity-log list \
+  --resource-group alphagenome-rg \
+  --start-time 2024-01-01T00:00:00Z \
+  --end-time 2024-01-02T00:00:00Z
+```
+
+## Cost Optimization
+
+### AWS Cost Optimization
+
+```bash
+# Use Spot instances for ECS
+aws ecs create-service \
+  --cluster alphagenome-cluster \
+  --service-name alphagenome-proxy \
+  --task-definition alphagenome-proxy:1 \
+  --capacity-provider-strategy capacityProvider=FARGATE_SPOT,weight=1 \
+  --desired-count 2
+
+# Set up auto-scaling
 aws application-autoscaling register-scalable-target \
   --service-namespace ecs \
   --scalable-dimension ecs:service:DesiredCount \
   --resource-id service/alphagenome-cluster/alphagenome-proxy \
   --min-capacity 1 \
   --max-capacity 10
-
-aws application-autoscaling put-scaling-policy \
-  --service-namespace ecs \
-  --scalable-dimension ecs:service:DesiredCount \
-  --resource-id service/alphagenome-cluster/alphagenome-proxy \
-  --policy-name cpu-scaling-policy \
-  --policy-type TargetTrackingScaling \
-  --target-tracking-scaling-policy-configuration file://scaling/cpu-policy.json
 ```
 
-### 负载均衡
+### Google Cloud Cost Optimization
 
 ```bash
-# 创建 Application Load Balancer
-aws elbv2 create-load-balancer \
-  --name alphagenome-alb \
-  --subnets subnet-12345 subnet-67890 \
-  --security-groups sg-12345
+# Use preemptible instances for GKE
+gcloud container clusters create alphagenome-cluster \
+  --zone us-central1-a \
+  --num-nodes 3 \
+  --machine-type e2-medium \
+  --preemptible
 
-# 创建目标组
-aws elbv2 create-target-group \
-  --name alphagenome-tg \
-  --protocol HTTP \
-  --port 50051 \
+# Set up auto-scaling
+kubectl autoscale deployment alphagenome-proxy \
+  --cpu-percent=70 \
+  --min=1 \
+  --max=10 \
+  -n alphagenome
+```
+
+## Security Best Practices
+
+### Network Security
+
+```bash
+# Use VPC for AWS
+aws ec2 create-vpc --cidr-block 10.0.0.0/16
+
+# Use private subnets
+aws ec2 create-subnet \
   --vpc-id vpc-12345 \
-  --target-type ip
+  --cidr-block 10.0.1.0/24 \
+  --availability-zone us-east-1a
 ```
 
-##  故障排除
-
-### 常见问题
-
-#### 1. 服务无法启动
+### API Key Security
 
 ```bash
-# 检查容器日志
-docker logs alphagenome-proxy
-kubectl logs -f deployment/alphagenome-proxy
+# Use AWS Secrets Manager
+aws secretsmanager create-secret \
+  --name alphagenome-api-key \
+  --secret-string '{"api-key":"your-api-key"}'
 
-# 检查健康状态
-curl -X GET http://localhost:50051/health
+# Use Google Secret Manager
+gcloud secrets create alphagenome-api-key --data-file=-
+echo "your-api-key" | gcloud secrets versions add alphagenome-api-key --data-file=-
 ```
 
-#### 2. API Key 错误
+### Container Security
 
 ```bash
-# 验证环境变量
-docker exec alphagenome-proxy env | grep ALPHAGENOME_API_KEY
-kubectl exec deployment/alphagenome-proxy -- env | grep ALPHAGENOME_API_KEY
+# Scan Docker images
+docker scan alphagenome-proxy:latest
 
-# 重新设置 Secret
-kubectl delete secret alphagenome-api-key
-kubectl create secret generic alphagenome-api-key \
-  --from-literal=api-key=your_new_api_key
+# Use non-root user
+USER 1000:1000
+
+# Minimize attack surface
+FROM python:3.11-slim
 ```
 
-#### 3. 网络连接问题
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection refused**
+   - Check if service is running
+   - Verify port configuration
+   - Check firewall rules
+
+2. **API key authentication failed**
+   - Verify API key is correct
+   - Check environment variables
+   - Test API key with curl
+
+3. **High latency**
+   - Check network connectivity
+   - Monitor resource usage
+   - Consider auto-scaling
+
+4. **Out of memory**
+   - Increase memory limits
+   - Optimize application
+   - Add more instances
+
+### Debug Commands
 
 ```bash
-# 测试网络连接
-curl -X GET https://api.alphagenome.google.com/health
+# Check service status
+kubectl describe pod -n alphagenome
+gcloud run services describe alphagenome-proxy --region=us-central1
+aws ecs describe-services --cluster alphagenome-cluster --services alphagenome-proxy
 
-# 检查防火墙规则
-aws ec2 describe-security-groups --group-ids sg-12345
+# View logs
+kubectl logs -n alphagenome -l app=alphagenome-proxy
+gcloud logging read "resource.type=cloud_run_revision"
+aws logs get-log-events --log-group-name /ecs/alphagenome-proxy
+
+# Test connectivity
+curl -v https://your-service-url/health
+telnet your-service-url 443
 ```
 
-### 调试工具
+## Performance Tuning
+
+### Resource Optimization
 
 ```bash
-# 端口转发（Kubernetes）
-kubectl port-forward deployment/alphagenome-proxy 50051:50051
+# Optimize CPU and memory
+--cpu 1 --memory 512Mi
 
-# 进入容器调试
-docker exec -it alphagenome-proxy /bin/bash
-kubectl exec -it deployment/alphagenome-proxy -- /bin/bash
-
-# 查看资源使用
-docker stats alphagenome-proxy
-kubectl top pods
+# Use appropriate instance types
+--machine-type e2-medium  # Google Cloud
+--instance-type t3.medium # AWS
 ```
 
-## 📞 支持
+### Network Optimization
 
-- [用户指南](USER_GUIDE.md)
-- 🐛 [问题报告](https://github.com/your-repo/alphagenome-proxy/issues)
-- 💬 [讨论](https://github.com/your-repo/alphagenome-proxy/discussions)
+```bash
+# Use HTTP/2
+--http2
 
----
+# Enable compression
+--enable-compression
 
-** 恭喜！你的 AlphaGenome 通信代理已成功部署到云端！** 
+# Use CDN
+--enable-cdn
+```
+
+### Application Optimization
+
+```python
+# Use connection pooling
+import grpc
+channel = grpc.secure_channel("service-url:443", 
+                             grpc.ssl_channel_credentials(),
+                             options=[('grpc.keepalive_time_ms', 30000)])
+
+# Implement caching
+import functools
+@functools.lru_cache(maxsize=1000)
+def cached_prediction(request):
+    return stub.PredictVariant(request)
+```
+
+## Backup and Recovery
+
+### Data Backup
+
+```bash
+# Backup configuration
+kubectl get all -n alphagenome -o yaml > backup.yaml
+
+# Backup secrets
+kubectl get secrets -n alphagenome -o yaml > secrets-backup.yaml
+```
+
+### Disaster Recovery
+
+```bash
+# Restore from backup
+kubectl apply -f backup.yaml
+kubectl apply -f secrets-backup.yaml
+
+# Cross-region deployment
+gcloud run deploy alphagenome-proxy \
+  --image gcr.io/PROJECT_ID/alphagenome-proxy \
+  --region us-central1,us-east1,us-west1
+```
+
+## Conclusion
+
+This comprehensive deployment guide covers all major cloud platforms and provides detailed instructions for deploying the AlphaGenome proxy service. Choose the platform that best fits your requirements and follow the step-by-step instructions for successful deployment.
+
+For additional support and troubleshooting, refer to the platform-specific documentation and community resources. 
