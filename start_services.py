@@ -3,13 +3,21 @@ import threading
 import time
 import os
 
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("Environment variables loaded from .env file")
+except ImportError:
+    print("python-dotenv not available, using system environment variables")
+
 
 def start_json_service():
-    print("Starting JSON service on port 8000...")
+    print("Starting Real AlphaGenome service on port 8000...")
 
     venv_python = os.path.join(os.getcwd(), "venv", "bin", "python")
     subprocess.run([
-        venv_python, "-m", "uvicorn", "mock_json_service:app",
+        venv_python, "-m", "uvicorn", "real_alphagenome_service:app",
         "--host", "127.0.0.1", "--port", "8000", "--reload"
     ])
 

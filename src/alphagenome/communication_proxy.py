@@ -8,15 +8,34 @@ import json
 from google.protobuf.json_format import MessageToDict, ParseDict
 from src.alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
+# Try to import real AlphaGenome package
+try:
+    import alphagenome
+    from alphagenome.models import dna_client
+    from alphagenome.data import genome
+    REAL_ALPHAGENOME_AVAILABLE = True
+    logger.info("Real AlphaGenome package imported successfully")
+except ImportError as e:
+    REAL_ALPHAGENOME_AVAILABLE = False
+    logger.warning(f"Real AlphaGenome package not available: {e}")
+
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger.info("Environment variables loaded from .env file")
+except ImportError:
+    logger.warning("python-dotenv not available, using system environment variables")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuration
 JSON_SERVICE_BASE_URL = os.getenv("JSON_SERVICE_BASE_URL", "http://127.0.0.1:8000")
-API_KEY = os.getenv("ALPHAGENOME_API_KEY", "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw")
-API_KEY_HEADER = os.getenv("API_KEY_HEADER", "Authorization")  # Default to Authorization header
-API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")  # Default to Bearer prefix
+API_KEY = os.getenv("ALPHAGENOME_API_KEY", "")
+API_KEY_HEADER = os.getenv("API_KEY_HEADER", "Authorization")
+API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")
 
 # Check API key configuration
 if API_KEY:
