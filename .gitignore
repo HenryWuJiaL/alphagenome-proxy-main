@@ -20,7 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments - 完全排除
+# Virtual environments - completely excluded
 venv/
 env/
 ENV/

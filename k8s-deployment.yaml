@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alphagenome-proxy
+  labels:
+    app: alphagenome-proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alphagenome-proxy
+  template:
+    metadata:
+      labels:
+        app: alphagenome-proxy
+    spec:
+      containers:
+      - name: alphagenome-proxy
+        image: alphagenome-proxy:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50051
+          name: grpc
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ALPHAGENOME_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: alphagenome-secret
+              key: api-key
+        - name: JSON_SERVICE_BASE_URL
+          value: "http://alphagenome-backend:8000"
+        - name: API_KEY_HEADER
+          value: "Authorization"
+        - name: API_KEY_PREFIX
+          value: "Bearer"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alphagenome-proxy-service
+spec:
+  selector:
+    app: alphagenome-proxy
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051
+  - name: http
+    port: 8000
+    targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alphagenome-secret
+type: Opaque
+data:
+  api-key: <base64-encoded-api-key>
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alphagenome-proxy-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: alphagenome-proxy-service
+            port:
+              number: 8000

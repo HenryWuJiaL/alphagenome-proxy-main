@@ -1,0 +1,135 @@
+# AlphaGenome API Input Examples
+
+This document provides examples of JSON inputs for each AlphaGenome endpoint.
+
+## Authentication
+All requests require an API key in the header:
+- Header: Authorization
+- Value: Bearer YOUR_API_KEY
+
+## Endpoints
+
+### POST /predict_sequence
+Headers: same as above
+Body (JSON):
+{
+  "sequence": "ATCGATCGATCG",
+  "sequence_type": 1,
+  "organism": 9606,
+  "requested_outputs": [1],
+  "model_version": "v1"
+}
+
+### POST /predict_interval
+Headers: same as above
+Body (JSON):
+{
+  "interval": {
+    "chromosome": "chr1",
+    "start": 0,
+    "end": 1000,
+    "strand": 0
+  },
+  "organism": 9606,
+  "requested_outputs": [1],
+  "model_version": "v1"
+}
+
+### POST /predict_variant
+Headers: same as above
+Body (JSON):
+{
+  "interval": {
+    "chromosome": "chr1",
+    "start": 0,
+    "end": 1000,
+    "strand": 0
+  },
+  "variant": {
+    "chromosome": "chr1",
+    "position": 500,
+    "reference_bases": "A",
+    "alternate_bases": "T"
+  },
+  "organism": 9606,
+  "requested_outputs": [1],
+  "ontology_terms": [],
+  "model_version": "v1"
+}
+
+### POST /score_interval
+Headers: same as above
+Body (JSON):
+{
+  "interval": {
+    "chromosome": "chr1",
+    "start": 0,
+    "end": 1000,
+    "strand": 0
+  },
+  "organism": 9606,
+  "interval_scorers": [
+    { "gene_mask": { "requested_output": 1, "width": 200, "aggregation_type": 1 } }
+  ],
+  "model_version": "v1"
+}
+
+### POST /score_variant
+Headers: same as above
+Body (JSON):
+{
+  "interval": {
+    "chromosome": "chr1",
+    "start": 0,
+    "end": 1000,
+    "strand": 0
+  },
+  "variant": {
+    "chromosome": "chr1",
+    "position": 500,
+    "reference_bases": "A",
+    "alternate_bases": "T"
+  },
+  "organism": 9606,
+  "variant_scorers": [
+    { "center_mask": { "width": 21, "aggregation_type": 1, "requested_output": 1 } }
+  ],
+  "model_version": "v1"
+}
+
+### POST /score_ism_variant
+Headers: same as above
+Body (JSON):
+{
+  "interval": {
+    "chromosome": "chr1",
+    "start": 0,
+    "end": 1000,
+    "strand": 0
+  },
+  "ism_interval": {
+    "chromosome": "chr1",
+    "start": 100,
+    "end": 120,
+    "strand": 0
+  },
+  "organism": 9606,
+  "variant_scorers": [
+    { "gene_mask": { "requested_output": 1 } }
+  ],
+  "model_version": "v1"
+}
+
+### POST /metadata
+Headers: same as above
+Body (JSON):
+{
+  "organism": 9606
+}
+
+## Notes
+
+- gRPC client and server message fields correspond one-to-one with the above JSON (field names are in proto's preserving_proto_field_name format).
+- If the backend requires different authentication headers or prefixes, adjust them through the API_KEY_HEADER / API_KEY_PREFIX environment variables.
+- All endpoints support binary responses including images and other media types.
+- Streaming responses are supported for all gRPC methods.

@@ -1,40 +1,35 @@
-# 使用官方 Python 3.11 镜像作为基础镜像
+# Use Python 3.11 slim image
 FROM python:3.11-slim
 
-# 设置工作目录
+# Set working directory
 WORKDIR /app
 
-# 设置环境变量
-ENV PYTHONPATH=/app/src
-ENV PYTHONUNBUFFERED=1
-
-# 安装系统依赖
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制 requirements 文件
+# Copy requirements first for better caching
 COPY requirements.txt .
 
-# 安装 Python 依赖
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制源代码
+# Copy application code
 COPY src/ ./src/
-COPY config_example.env .
+COPY mock_json_service.py .
+COPY start_services.py .
 
-# 创建非 root 用户
-RUN useradd --create-home --shell /bin/bash app \
-    && chown -R app:app /app
-USER app
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
-# 暴露端口
-EXPOSE 50051
+# Expose ports
+EXPOSE 50051 8000
 
-# 健康检查
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import grpc; channel = grpc.insecure_channel('localhost:50051'); channel.close()" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8000/docs', timeout=5)" || exit 1
 
-# 启动命令
-CMD ["python", "-c", "from alphagenome import communication_proxy; communication_proxy.serve()"] 
+# Default command
+CMD ["python", "start_services.py"]

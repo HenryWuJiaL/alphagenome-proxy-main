@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-
+package google.gdm.gdmscience.alphagenome.v1main;
 
 option go_package = "google.golang.org/genproto/googleapis/gdm/gdmscience/alphagenome/v1main;alphagenome";
 option java_multiple_files = true;

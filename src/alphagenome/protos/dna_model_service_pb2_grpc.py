@@ -3,9 +3,9 @@
 import grpc
 import warnings
 
-from alphagenome.protos import dna_model_pb2 as alphagenome_dot_protos_dot_dna__model__pb2
+from . import dna_model_pb2 as dna__model__pb2
 
-GRPC_GENERATED_VERSION = '1.67.1'
+GRPC_GENERATED_VERSION = '1.73.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -36,40 +36,40 @@ class DnaModelServiceStub(object):
             channel: A grpc.Channel.
         """
         self.PredictSequence = channel.stream_stream(
-                '/DnaModelService/PredictSequence',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictSequence',
+                request_serializer=dna__model__pb2.PredictSequenceRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.PredictSequenceResponse.FromString,
+                )
         self.PredictInterval = channel.stream_stream(
-                '/DnaModelService/PredictInterval',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictInterval',
+                request_serializer=dna__model__pb2.PredictIntervalRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.PredictIntervalResponse.FromString,
+                )
         self.PredictVariant = channel.stream_stream(
-                '/DnaModelService/PredictVariant',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictVariant',
+                request_serializer=dna__model__pb2.PredictVariantRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.PredictVariantResponse.FromString,
+                )
         self.ScoreInterval = channel.stream_stream(
-                '/DnaModelService/ScoreInterval',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreInterval',
+                request_serializer=dna__model__pb2.ScoreIntervalRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.ScoreIntervalResponse.FromString,
+                )
         self.ScoreVariant = channel.stream_stream(
-                '/DnaModelService/ScoreVariant',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreVariant',
+                request_serializer=dna__model__pb2.ScoreVariantRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.ScoreVariantResponse.FromString,
+                )
         self.ScoreIsmVariant = channel.stream_stream(
-                '/DnaModelService/ScoreIsmVariant',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreIsmVariant',
+                request_serializer=dna__model__pb2.ScoreIsmVariantRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.ScoreIsmVariantResponse.FromString,
+                )
         self.GetMetadata = channel.unary_stream(
-                '/DnaModelService/GetMetadata',
-                request_serializer=alphagenome_dot_protos_dot_dna__model__pb2.MetadataRequest.SerializeToString,
-                response_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.MetadataResponse.FromString,
-                _registered_method=True)
+                '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/GetMetadata',
+                request_serializer=dna__model__pb2.MetadataRequest.SerializeToString,
+                response_deserializer=dna__model__pb2.MetadataResponse.FromString,
+                )
 
 
 class DnaModelServiceServicer(object):
@@ -130,44 +130,43 @@ def add_DnaModelServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'PredictSequence': grpc.stream_stream_rpc_method_handler(
                     servicer.PredictSequence,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.PredictSequenceRequest.FromString,
+                    response_serializer=dna__model__pb2.PredictSequenceResponse.SerializeToString,
             ),
             'PredictInterval': grpc.stream_stream_rpc_method_handler(
                     servicer.PredictInterval,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.PredictIntervalRequest.FromString,
+                    response_serializer=dna__model__pb2.PredictIntervalResponse.SerializeToString,
             ),
             'PredictVariant': grpc.stream_stream_rpc_method_handler(
                     servicer.PredictVariant,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.PredictVariantRequest.FromString,
+                    response_serializer=dna__model__pb2.PredictVariantResponse.SerializeToString,
             ),
             'ScoreInterval': grpc.stream_stream_rpc_method_handler(
                     servicer.ScoreInterval,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.ScoreIntervalRequest.FromString,
+                    response_serializer=dna__model__pb2.ScoreIntervalResponse.SerializeToString,
             ),
             'ScoreVariant': grpc.stream_stream_rpc_method_handler(
                     servicer.ScoreVariant,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.ScoreVariantRequest.FromString,
+                    response_serializer=dna__model__pb2.ScoreVariantResponse.SerializeToString,
             ),
             'ScoreIsmVariant': grpc.stream_stream_rpc_method_handler(
                     servicer.ScoreIsmVariant,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.ScoreIsmVariantRequest.FromString,
+                    response_serializer=dna__model__pb2.ScoreIsmVariantResponse.SerializeToString,
             ),
             'GetMetadata': grpc.unary_stream_rpc_method_handler(
                     servicer.GetMetadata,
-                    request_deserializer=alphagenome_dot_protos_dot_dna__model__pb2.MetadataRequest.FromString,
-                    response_serializer=alphagenome_dot_protos_dot_dna__model__pb2.MetadataResponse.SerializeToString,
+                    request_deserializer=dna__model__pb2.MetadataRequest.FromString,
+                    response_serializer=dna__model__pb2.MetadataResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'DnaModelService', rpc_method_handlers)
+            'google.gdm.gdmscience.alphagenome.v1main.DnaModelService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('DnaModelService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -186,21 +185,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/PredictSequence',
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictSequenceResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictSequence',
+            dna__model__pb2.PredictSequenceRequest.SerializeToString,
+            dna__model__pb2.PredictSequenceResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PredictInterval(request_iterator,
@@ -213,21 +202,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/PredictInterval',
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictIntervalResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictInterval',
+            dna__model__pb2.PredictIntervalRequest.SerializeToString,
+            dna__model__pb2.PredictIntervalResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PredictVariant(request_iterator,
@@ -240,21 +219,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/PredictVariant',
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.PredictVariantResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/PredictVariant',
+            dna__model__pb2.PredictVariantRequest.SerializeToString,
+            dna__model__pb2.PredictVariantResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ScoreInterval(request_iterator,
@@ -267,21 +236,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/ScoreInterval',
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreIntervalResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreInterval',
+            dna__model__pb2.ScoreIntervalRequest.SerializeToString,
+            dna__model__pb2.ScoreIntervalResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ScoreVariant(request_iterator,
@@ -294,21 +253,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/ScoreVariant',
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreVariantResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreVariant',
+            dna__model__pb2.ScoreVariantRequest.SerializeToString,
+            dna__model__pb2.ScoreVariantResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ScoreIsmVariant(request_iterator,
@@ -321,21 +270,11 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/DnaModelService/ScoreIsmVariant',
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.ScoreIsmVariantResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.stream_stream(request_iterator, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/ScoreIsmVariant',
+            dna__model__pb2.ScoreIsmVariantRequest.SerializeToString,
+            dna__model__pb2.ScoreIsmVariantResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetMetadata(request,
@@ -348,18 +287,8 @@ class DnaModelService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(
-            request,
-            target,
-            '/DnaModelService/GetMetadata',
-            alphagenome_dot_protos_dot_dna__model__pb2.MetadataRequest.SerializeToString,
-            alphagenome_dot_protos_dot_dna__model__pb2.MetadataResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+        return grpc.experimental.unary_stream(request, target, '/google.gdm.gdmscience.alphagenome.v1main.DnaModelService/GetMetadata',
+            dna__model__pb2.MetadataRequest.SerializeToString,
+            dna__model__pb2.MetadataResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

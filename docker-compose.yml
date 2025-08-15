@@ -1,37 +1,26 @@
 version: '3.8'
 
 services:
-  # AlphaGenome Communication Proxy
   alphagenome-proxy:
     build: .
     ports:
-      - "50051:50051"
+      - "50051:50051"  # gRPC port
+      - "8000:8000"    # JSON service port
     environment:
-      - JSON_SERVICE_BASE_URL=${JSON_SERVICE_BASE_URL:-http://mock-json-service:8000}
-      - ALPHAGENOME_API_KEY=${ALPHAGENOME_API_KEY:-}
-      - API_KEY_HEADER=${API_KEY_HEADER:-Authorization}
-      - API_KEY_PREFIX=${API_KEY_PREFIX:-Bearer }
-    volumes:
-      - ./logs:/app/logs
+      - JSON_SERVICE_BASE_URL=http://localhost:8000
+      - ALPHAGENOME_API_KEY=${ALPHAGENOME_API_KEY}
+      - API_KEY_HEADER=Authorization
+      - API_KEY_PREFIX=Bearer
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); channel.close()"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/docs', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - alphagenome-network
 
-  # Mock JSON Service (for testing)
-  mock-json-service:
-    image: python:3.11-slim
-    ports:
-      - "8000:8000"
-    working_dir: /app
-    volumes:
-      - ./simple_mock_service.py:/app/simple_mock_service.py
-    command: >
-      sh -c "pip install flask &&
-             python simple_mock_service.py"
-    environment:
-      - FLASK_ENV=production
-    restart: unless-stopped 
+networks:
+  alphagenome-network:
+    driver: bridge

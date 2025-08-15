@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 JSON_SERVICE_BASE_URL = os.getenv("JSON_SERVICE_BASE_URL", "http://127.0.0.1:8000")
-API_KEY = os.getenv("ALPHAGENOME_API_KEY", "")
+API_KEY = os.getenv("ALPHAGENOME_API_KEY", "AIzaSyCuzXNdXfyPfQVvrPVvMGt_YmIyI07cnbw")
 API_KEY_HEADER = os.getenv("API_KEY_HEADER", "Authorization")  # Default to Authorization header
 API_KEY_PREFIX = os.getenv("API_KEY_PREFIX", "Bearer ")  # Default to Bearer prefix
 
@@ -100,7 +100,21 @@ def _convert_binary_to_protobuf(response_data, grpc_response):
         logger.info(f"Converted binary data of size {len(binary_data)} bytes to protobuf")
     else:
         # Handle regular JSON data
-        ParseDict(response_data, grpc_response)
+        try:
+            ParseDict(response_data, grpc_response)
+        except Exception as e:
+            logger.warning(f"Failed to parse response with ParseDict: {e}")
+            logger.info(f"Response data: {response_data}")
+            # Try to manually set the response fields based on response type
+            if hasattr(grpc_response, 'reference_output') and 'reference_output' in response_data:
+                grpc_response.reference_output.output_type = response_data['reference_output'].get('output_type', 1)
+            elif hasattr(grpc_response, 'output') and 'output' in response_data:
+                if 'interval_data' in response_data.get('output', {}):
+                    # For ScoreInterval response
+                    pass  # interval_data is already empty dict
+                else:
+                    # For PredictSequence and PredictInterval
+                    grpc_response.output.output_type = response_data['output'].get('output_type', 1)
 
 
 class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServicer):
@@ -111,8 +125,9 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
             for request in request_iterator:
                 request_dict = MessageToDict(request, preserving_proto_field_name=True)
                 
-                # Your screenshot shows this was previously pointing to /predict_variant, which is correct
-                json_service_url = f"{JSON_SERVICE_BASE_URL}/predict_variant" 
+                # Use predict_sequence endpoint for sequence prediction
+                json_service_url = f"{JSON_SERVICE_BASE_URL}/predict_sequence"
+                logger.info(f"PredictSequence calling endpoint: {json_service_url}") 
                 
                 headers = _get_headers()
                 response = requests.post(json_service_url, json=request_dict, headers=headers)
@@ -120,6 +135,7 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
                 
                 # Handle response (binary or JSON)
                 response_data = _handle_binary_response(response)
+                logger.info(f"PredictSequence response data: {response_data}")
 
                 grpc_response = dna_model_pb2.PredictSequenceResponse()
                 _convert_binary_to_protobuf(response_data, grpc_response)
@@ -156,88 +172,228 @@ class CommunicationProxyServicer(dna_model_service_pb2_grpc.DnaModelServiceServi
             context.set_details(f"Error in PredictInterval stream: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
 
-    def PredictVariant(self, request, context):
+    def PredictVariant(self, request_iterator, context):
+        logging.info("Proxying streaming PredictVariant request")
         try:
-            json_payload = MessageToDict(request, preserving_proto_field_name=True)
-            logger.info(f"Received gRPC PredictVariant request: {json_payload}")
-        except Exception as e:
-            logger.error(f"Failed to convert PredictVariant request to JSON: {e}")
-            context.set_details(f"Request conversion error: {e}")
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return dna_model_pb2.PredictVariantResponse()
+            # Process each request from the client
+            for request in request_iterator:
+                try:
+                    json_payload = MessageToDict(request, preserving_proto_field_name=True)
+                    logger.info(f"Received gRPC PredictVariant request: {json_payload}")
+                except Exception as e:
+                    logger.error(f"Failed to convert PredictVariant request to JSON: {e}")
+                    context.set_details(f"Request conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    continue
 
+                try:
+                    headers = _get_headers()
+                    response = requests.post(
+                        f"{JSON_SERVICE_BASE_URL}/predict_variant",
+                        json=json_payload,
+                        headers=headers,
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Received HTTP PredictVariant response with content-type: {response.headers.get('content-type', 'unknown')}")
+                except requests.RequestException as e:
+                    logger.error(f"HTTP request failed (PredictVariant): {e}")
+                    context.set_details(f"HTTP request error: {e}")
+                    context.set_code(grpc.StatusCode.UNAVAILABLE)
+                    continue
+
+                try:
+                    # Handle response (binary or JSON)
+                    response_data = _handle_binary_response(response)
+                    
+                    grpc_response = dna_model_pb2.PredictVariantResponse()
+                    _convert_binary_to_protobuf(response_data, grpc_response)
+                    
+                    logger.info(f"Returning gRPC PredictVariant response")
+                    yield grpc_response
+                except Exception as e:
+                    logger.error(f"Failed to parse response to gRPC PredictVariant response: {e}")
+                    context.set_details(f"Response conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INTERNAL)
+                    continue
+        except Exception as e:
+            logging.error(f"Error in PredictVariant stream: {e}")
+            context.set_details(f"Error in PredictVariant stream: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+
+    def ScoreInterval(self, request_iterator, context):
+        logging.info("Proxying streaming ScoreInterval request")
         try:
+            # Process each request from the client
+            for request in request_iterator:
+                try:
+                    json_payload = MessageToDict(request, preserving_proto_field_name=True)
+                    logger.info(f"Received gRPC ScoreInterval request: {json_payload}")
+                except Exception as e:
+                    logger.error(f"Failed to convert ScoreInterval request to JSON: {e}")
+                    context.set_details(f"Request conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    continue
+
+                try:
+                    headers = _get_headers()
+                    response = requests.post(
+                        f"{JSON_SERVICE_BASE_URL}/score_interval",
+                        json=json_payload,
+                        headers=headers,
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Received HTTP ScoreInterval response with content-type: {response.headers.get('content-type', 'unknown')}")
+                except requests.RequestException as e:
+                    logger.error(f"HTTP request failed (ScoreInterval): {e}")
+                    context.set_details(f"HTTP request error: {e}")
+                    context.set_code(grpc.StatusCode.UNAVAILABLE)
+                    continue
+
+                try:
+                    # Handle response (binary or JSON)
+                    response_data = _handle_binary_response(response)
+                    
+                    grpc_response = dna_model_pb2.ScoreIntervalResponse()
+                    _convert_binary_to_protobuf(response_data, grpc_response)
+                    
+                    logger.info(f"Returning gRPC ScoreInterval response")
+                    yield grpc_response
+                except Exception as e:
+                    logger.error(f"Failed to parse response to gRPC ScoreInterval response: {e}")
+                    context.set_details(f"Response conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INTERNAL)
+                    continue
+        except Exception as e:
+            logging.error(f"Error in ScoreInterval stream: {e}")
+            context.set_details(f"Error in ScoreInterval stream: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+
+    def ScoreVariant(self, request_iterator, context):
+        logging.info("Proxying streaming ScoreVariant request")
+        try:
+            for request in request_iterator:
+                try:
+                    json_payload = MessageToDict(request, preserving_proto_field_name=True)
+                    logger.info(f"Received gRPC ScoreVariant request: {json_payload}")
+                except Exception as e:
+                    logger.error(f"Failed to convert ScoreVariant request to JSON: {e}")
+                    context.set_details(f"Request conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    continue
+
+                try:
+                    headers = _get_headers()
+                    response = requests.post(
+                        f"{JSON_SERVICE_BASE_URL}/score_variant",
+                        json=json_payload,
+                        headers=headers,
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Received HTTP ScoreVariant response with content-type: {response.headers.get('content-type', 'unknown')}")
+                except requests.RequestException as e:
+                    logger.error(f"HTTP request failed (ScoreVariant): {e}")
+                    context.set_details(f"HTTP request error: {e}")
+                    context.set_code(grpc.StatusCode.UNAVAILABLE)
+                    continue
+
+                try:
+                    response_data = _handle_binary_response(response)
+                    grpc_response = dna_model_pb2.ScoreVariantResponse()
+                    _convert_binary_to_protobuf(response_data, grpc_response)
+                    logger.info("Returning gRPC ScoreVariant response")
+                    yield grpc_response
+                except Exception as e:
+                    logger.error(f"Failed to parse response to gRPC ScoreVariant response: {e}")
+                    context.set_details(f"Response conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INTERNAL)
+                    continue
+        except Exception as e:
+            logging.error(f"Error in ScoreVariant stream: {e}")
+            context.set_details(f"Error in ScoreVariant stream: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+
+    def ScoreIsmVariant(self, request_iterator, context):
+        logging.info("Proxying streaming ScoreIsmVariant request")
+        try:
+            for request in request_iterator:
+                try:
+                    json_payload = MessageToDict(request, preserving_proto_field_name=True)
+                    logger.info(f"Received gRPC ScoreIsmVariant request: {json_payload}")
+                except Exception as e:
+                    logger.error(f"Failed to convert ScoreIsmVariant request to JSON: {e}")
+                    context.set_details(f"Request conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                    continue
+
+                try:
+                    headers = _get_headers()
+                    response = requests.post(
+                        f"{JSON_SERVICE_BASE_URL}/score_ism_variant",
+                        json=json_payload,
+                        headers=headers,
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Received HTTP ScoreIsmVariant response with content-type: {response.headers.get('content-type', 'unknown')}")
+                except requests.RequestException as e:
+                    logger.error(f"HTTP request failed (ScoreIsmVariant): {e}")
+                    context.set_details(f"HTTP request error: {e}")
+                    context.set_code(grpc.StatusCode.UNAVAILABLE)
+                    continue
+
+                try:
+                    response_data = _handle_binary_response(response)
+                    grpc_response = dna_model_pb2.ScoreIsmVariantResponse()
+                    _convert_binary_to_protobuf(response_data, grpc_response)
+                    logger.info("Returning gRPC ScoreIsmVariant response")
+                    yield grpc_response
+                except Exception as e:
+                    logger.error(f"Failed to parse response to gRPC ScoreIsmVariant response: {e}")
+                    context.set_details(f"Response conversion error: {e}")
+                    context.set_code(grpc.StatusCode.INTERNAL)
+                    continue
+        except Exception as e:
+            logging.error(f"Error in ScoreIsmVariant stream: {e}")
+            context.set_details(f"Error in ScoreIsmVariant stream: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+
+    def GetMetadata(self, request, context):
+        logging.info("Proxying GetMetadata request")
+        try:
+            try:
+                json_payload = MessageToDict(request, preserving_proto_field_name=True)
+                logger.info(f"Received gRPC GetMetadata request: {json_payload}")
+            except Exception as e:
+                logger.error(f"Failed to convert GetMetadata request to JSON: {e}")
+                context.set_details(f"Request conversion error: {e}")
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                return
+
             headers = _get_headers()
             response = requests.post(
-                f"{JSON_SERVICE_BASE_URL}/predict_variant",
+                f"{JSON_SERVICE_BASE_URL}/metadata",
                 json=json_payload,
                 headers=headers,
                 timeout=10
             )
             response.raise_for_status()
-            logger.info(f"Received HTTP PredictVariant response with content-type: {response.headers.get('content-type', 'unknown')}")
+            logger.info(f"Received HTTP GetMetadata response with content-type: {response.headers.get('content-type', 'unknown')}")
+
+            response_data = _handle_binary_response(response)
+            grpc_response = dna_model_pb2.MetadataResponse()
+            _convert_binary_to_protobuf(response_data, grpc_response)
+            yield grpc_response
         except requests.RequestException as e:
-            logger.error(f"HTTP request failed (PredictVariant): {e}")
+            logger.error(f"HTTP request failed (GetMetadata): {e}")
             context.set_details(f"HTTP request error: {e}")
             context.set_code(grpc.StatusCode.UNAVAILABLE)
-            return dna_model_pb2.PredictVariantResponse()
-
-        try:
-            # Handle response (binary or JSON)
-            response_data = _handle_binary_response(response)
-            
-            grpc_response = dna_model_pb2.PredictVariantResponse()
-            _convert_binary_to_protobuf(response_data, grpc_response)
-            
-            logger.info(f"Returning gRPC PredictVariant response")
-            return grpc_response
         except Exception as e:
-            logger.error(f"Failed to parse response to gRPC PredictVariant response: {e}")
+            logger.error(f"Failed to parse response to gRPC Metadata response: {e}")
             context.set_details(f"Response conversion error: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
-            return dna_model_pb2.PredictVariantResponse()
-
-    def ScoreInterval(self, request, context):
-        try:
-            json_payload = MessageToDict(request, preserving_proto_field_name=True)
-            logger.info(f"Received gRPC ScoreInterval request: {json_payload}")
-        except Exception as e:
-            logger.error(f"Failed to convert ScoreInterval request to JSON: {e}")
-            context.set_details(f"Request conversion error: {e}")
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return dna_model_pb2.ScoreIntervalResponse()
-
-        try:
-            headers = _get_headers()
-            response = requests.post(
-                f"{JSON_SERVICE_BASE_URL}/score_interval",
-                json=json_payload,
-                headers=headers,
-                timeout=10
-            )
-            response.raise_for_status()
-            logger.info(f"Received HTTP ScoreInterval response with content-type: {response.headers.get('content-type', 'unknown')}")
-        except requests.RequestException as e:
-            logger.error(f"HTTP request failed (ScoreInterval): {e}")
-            context.set_details(f"HTTP request error: {e}")
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            return dna_model_pb2.ScoreIntervalResponse()
-
-        try:
-            # Handle response (binary or JSON)
-            response_data = _handle_binary_response(response)
-            
-            grpc_response = dna_model_pb2.ScoreIntervalResponse()
-            _convert_binary_to_protobuf(response_data, grpc_response)
-            
-            logger.info(f"Returning gRPC ScoreInterval response")
-            return grpc_response
-        except Exception as e:
-            logger.error(f"Failed to parse response to gRPC ScoreInterval response: {e}")
-            context.set_details(f"Response conversion error: {e}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            return dna_model_pb2.ScoreIntervalResponse()
-
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     dna_model_service_pb2_grpc.add_DnaModelServiceServicer_to_server(CommunicationProxyServicer(), server)
