@@ -215,67 +215,6 @@ src/alphagenome/
     └── tensor.proto
 ```
 
-## Development
-
-### Adding New Endpoints
-
-1. Add the endpoint to `mock_json_service.py`
-2. Implement the corresponding gRPC method in `communication_proxy.py`
-3. Add test cases to `final_proxy_test.py`
-
-### Customizing Response Handling
-
-Modify the `_convert_binary_to_protobuf` function in `communication_proxy.py` to handle custom response formats.
-
-## Testing
-
-### Basic Test
-```bash
-python test_proxy.py
-```
-
-### Comprehensive Test
-```bash
-python final_proxy_test.py
-```
-
-### Custom Test
-```bash
-python -c "
-import grpc
-from src.alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
-
-channel = grpc.insecure_channel('localhost:50051')
-stub = dna_model_service_pb2_grpc.DnaModelServiceStub(channel)
-
-# Your custom test code here
-"
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Port Already in Use**
-   ```bash
-   lsof -nP -iTCP:8000 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill -9
-   lsof -nP -iTCP:50051 -sTCP:LISTEN | awk 'NR>1{print $2}' | xargs -r kill -9
-   ```
-
-2. **Import Errors**
-   - Ensure virtual environment is activated
-   - Check that all dependencies are installed
-   - Verify Python path includes src directory
-
-3. **gRPC Connection Issues**
-   - Verify proxy server is running on port 50051
-   - Check firewall settings
-   - Ensure correct channel address
-
-### Logs
-
-- Proxy logs: `/tmp/alphagenome_proxy.log`
-- JSON service logs: `/tmp/alphagenome_json.log`
 
 ## Deployment
 
@@ -296,6 +235,101 @@ RUN pip install -r requirements.txt
 COPY . .
 EXPOSE 50051
 CMD ["python", "-c", "from src.alphagenome.communication_proxy import serve; serve()"]
+```
+# Cloud Deployment Guide
+
+## Supported Cloud Platforms
+
+### 1. AWS (Amazon Web Services)
+
+#### EC2 Deployment
+```bash
+# Launch EC2 instance (Ubuntu 20.04 LTS)
+# Connect via SSH
+sudo apt update
+sudo apt install -y docker.io docker-compose
+sudo usermod -a -G docker $USER
+
+# Clone and deploy
+git clone <your-repo>
+cd <your-repo>
+cp env.example .env
+# Edit .env with your API key
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### ECS (Elastic Container Service)
+```bash
+# Build and push to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+docker build -t alphagenome-proxy .
+docker tag alphagenome-proxy:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/alphagenome-proxy:latest
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/alphagenome-proxy:latest
+```
+
+### 2. Google Cloud Platform (GCP)
+
+#### Cloud Run
+```bash
+# Build and deploy to Cloud Run
+gcloud builds submit --tag gcr.io/<project-id>/alphagenome-proxy
+gcloud run deploy alphagenome-proxy \
+  --image gcr.io/<project-id>/alphagenome-proxy \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 8000
+```
+
+#### GKE (Google Kubernetes Engine)
+```bash
+# Deploy to GKE
+gcloud container clusters get-credentials <cluster-name> --zone <zone>
+kubectl apply -f k8s-deployment.yaml
+```
+
+### 3. Azure
+
+#### Azure Container Instances
+```bash
+# Build and push to Azure Container Registry
+az acr build --registry <registry-name> --image alphagenome-proxy .
+az container create \
+  --resource-group <resource-group> \
+  --name alphagenome-proxy \
+  --image <registry-name>.azurecr.io/alphagenome-proxy:latest \
+  --ports 50051 8000 \
+  --environment-variables ALPHAGENOME_API_KEY=<your-api-key>
+```
+
+### 4. DigitalOcean
+
+#### App Platform
+```bash
+# Deploy via App Platform
+# 1. Connect your GitHub repository
+# 2. Select Dockerfile as build method
+# 3. Set environment variables
+# 4. Deploy
+```
+
+## Environment Variables for Production
+
+```bash
+# Required
+ALPHAGENOME_API_KEY=your_real_api_key
+
+# Optional (with defaults)
+JSON_SERVICE_BASE_URL=https://your-backend-service.com
+API_KEY_HEADER=Authorization
+API_KEY_PREFIX=Bearer
+LOG_LEVEL=INFO
+
+# Network (for production)
+GRPC_HOST=0.0.0.0
+GRPC_PORT=50051
+HTTP_PORT=8000
 ```
 
 
