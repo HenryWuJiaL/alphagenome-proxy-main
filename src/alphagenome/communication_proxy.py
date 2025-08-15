@@ -8,6 +8,10 @@ import json
 from google.protobuf.json_format import MessageToDict, ParseDict
 from src.alphagenome.protos import dna_model_pb2, dna_model_service_pb2_grpc
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Try to import real AlphaGenome package
 try:
     import alphagenome
@@ -26,10 +30,6 @@ try:
     logger.info("Environment variables loaded from .env file")
 except ImportError:
     logger.warning("python-dotenv not available, using system environment variables")
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Configuration
 JSON_SERVICE_BASE_URL = os.getenv("JSON_SERVICE_BASE_URL", "http://127.0.0.1:8000")

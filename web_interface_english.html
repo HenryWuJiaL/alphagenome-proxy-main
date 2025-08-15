@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaGenome Web Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .plot-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .data-section {
+            margin: 20px 0;
+        }
+        .plot-section img {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .plot-section img:hover {
+            transform: scale(1.02);
+        }
+        .form-text {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* Results output styling */
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .data-section {
+            margin: 20px 0;
+            overflow-x: hidden;
+        }
+        
+        .result {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AlphaGenome Web Interface</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('api-config', this)">API Configuration</div>
+            <div class="tab" onclick="showTab('prediction', this)">Prediction</div>
+            <div class="tab" onclick="showTab('results', this)">Results</div>
+        </div>
+
+        <div id="api-config" class="tab-content active">
+            <h3>API Key Configuration</h3>
+            <p>Please set your AlphaGenome API Key to use prediction features</p>
+            
+            <div class="form-group">
+                <label for="apiKey">AlphaGenome API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your AlphaGenome API Key">
+                <button onclick="saveApiKey()">Save API Key</button>
+            </div>
+        </div>
+
+        <div id="prediction" class="tab-content">
+            <div class="form-group">
+                <label for="method">Select Prediction Method:</label>
+                <select id="method">
+                    <option value="predict_variant">Predict Variant (predict_variant)</option>
+                    <option value="predict_variants">Predict Variants (predict_variants)</option>
+                    <option value="score_variant">Score Variant (score_variant)</option>
+                    <option value="score_variants">Score Variants (score_variants)</option>
+                    <option value="predict_interval">Predict Interval (predict_interval)</option>
+                    <option value="predict_intervals">Predict Intervals (predict_intervals)</option>
+                    <option value="score_interval">Score Interval (score_interval)</option>
+                    <option value="score_intervals">Score Intervals (score_intervals)</option>
+                    <option value="predict_sequence">Predict Sequence (predict_sequence)</option>
+                    <option value="predict_sequences">Predict Sequences (predict_sequences)</option>
+                    <option value="score_ism_variant">Score ISM Variant (score_ism_variants)</option>
+                    <option value="metadata">Get Metadata (output_metadata)</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="chromosome">Chromosome:</label>
+                        <input type="text" id="chromosome" value="chr22" placeholder="e.g., chr22">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="start">Start Position:</label>
+                        <input type="number" id="start" value="35677410" placeholder="e.g., 35677410">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="end">End Position:</label>
+                        <input type="number" id="end" value="36725986" placeholder="e.g., 36725986">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="position">Variant Position:</label>
+                        <input type="number" id="position" value="36201698" placeholder="e.g., 36201698">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="referenceBases">Reference Bases:</label>
+                        <input type="text" id="referenceBases" value="A" placeholder="e.g., A">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="alternateBases">Alternate Bases:</label>
+                        <input type="text" id="alternateBases" value="C" placeholder="e.g., C">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="outputType">Output Type:</label>
+                <select id="outputType">
+                    <option value="1">ATAC (1)</option>
+                    <option value="2">CAGE (2)</option>
+                    <option value="3">DNASE (3)</option>
+                    <option value="4">RNA_SEQ (4)</option>
+                    <option value="5">CHIP_HISTONE (5)</option>
+                    <option value="6">CHIP_TF (6)</option>
+                    <option value="7">SPLICE_SITES (7)</option>
+                    <option value="8">SPLICE_SITE_USAGE (8)</option>
+                    <option value="9">SPLICE_JUNCTIONS (9)</option>
+                    <option value="11">CONTACT_MAPS (11)</option>
+                    <option value="12">PROCAP (12)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ontologyTerms">Ontology Terms (Optional):</label>
+                <input type="text" id="ontologyTerms" value="UBERON:0001157" placeholder="e.g., UBERON:0001157 for heart">
+                <small class="form-text">Enter ontology terms to specify biological context (e.g., UBERON:0001157 for heart)</small>
+            </div>
+
+            <button onclick="callAlphaGenome()">Call AlphaGenome Prediction</button>
+            <button onclick="testConnection()">Test Connection</button>
+        </div>
+
+        <div id="results" class="tab-content">
+            <h3>Prediction Results</h3>
+            <div id="result" class="result">
+                <p>Results will appear here after making a prediction.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Save API Key to local storage
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKey').value;
+            if (apiKey) {
+                localStorage.setItem('alphagenome_api_key', apiKey);
+                showMessage('API Key saved successfully!', 'success');
+            } else {
+                showMessage('Please enter a valid API Key', 'error');
+            }
+        }
+
+        // Load API Key from local storage
+        function loadApiKey() {
+            const apiKey = localStorage.getItem('alphagenome_api_key');
+            if (apiKey) {
+                document.getElementById('apiKey').value = apiKey;
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        // Test connection
+        function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading">Testing connection...</div>';
+            
+            // Test multiple endpoints to ensure service is fully operational
+            Promise.all([
+                fetch('http://localhost:8000/health'),
+                fetch('http://localhost:8000/docs')
+            ])
+            .then(responses => {
+                const healthResponse = responses[0];
+                const docsResponse = responses[1];
+                
+                if (healthResponse.ok && docsResponse.ok) {
+                    return healthResponse.json();
+                } else {
+                    throw new Error('Service endpoints not responding');
+                }
+            })
+            .then(healthData => {
+                const status = healthData.status;
+                const alphagenomeAvailable = healthData.alphagenome_available;
+                const version = healthData.version;
+                
+                if (status === 'healthy' && alphagenomeAvailable) {
+                    showMessage(`✅ Connection successful! AlphaGenome service is running.\n\nService Status: ${status}\nAlphaGenome Available: ${alphagenomeAvailable}\nVersion: ${version}`, 'success');
+                } else {
+                    showMessage(`⚠️ Service is running but AlphaGenome may not be fully available.\n\nService Status: ${status}\nAlphaGenome Available: ${alphagenomeAvailable}`, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage(`❌ Connection failed: ${error.message}\n\nPlease check:\n1. AlphaGenome service is running on port 8000\n2. No firewall blocking the connection\n3. Service is accessible at http://localhost:8000`, 'error');
+            });
+        }
+
+        // Call AlphaGenome API
+        function callAlphaGenome() {
+            const method = document.getElementById('method').value;
+            const apiKey = localStorage.getItem('alphagenome_api_key');
+            
+            if (!apiKey) {
+                showMessage('Please save your API Key first', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading">Making prediction...</div>';
+
+            let requestData = {};
+            let endpoint = '';
+
+            switch (method) {
+                case 'predict_variant':
+                    endpoint = '/predict_variant';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        variant: {
+                            chromosome: document.getElementById('chromosome').value,
+                            position: parseInt(document.getElementById('position').value),
+                            reference_bases: document.getElementById('referenceBases').value,
+                            alternate_bases: document.getElementById('alternateBases').value
+                        },
+                        output_type: parseInt(document.getElementById('outputType').value),
+                        ontology_terms: getOntologyTerms(),
+                        organism: 9606,  // Human
+                        model_version: 'v1'
+                    };
+                    break;
+                case 'score_variant':
+                    endpoint = '/score_variant';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        variant: {
+                            chromosome: document.getElementById('chromosome').value,
+                            position: parseInt(document.getElementById('position').value),
+                            reference_bases: document.getElementById('referenceBases').value,
+                            alternate_bases: document.getElementById('alternateBases').value
+                        },
+                        output_type: parseInt(document.getElementById('outputType').value),
+                        ontology_terms: getOntologyTerms(),
+                        organism: 9606,  // Human
+                        model_version: 'v1'
+                    };
+                    break;
+                case 'predict_interval':
+                    endpoint = '/predict_interval';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'score_interval':
+                    endpoint = '/score_interval';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'predict_sequence':
+                    endpoint = '/predict_sequence';
+                    requestData = {
+                        sequence: 'ATCGATCGATCG',
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'score_ism_variant':
+                    endpoint = '/score_ism_variant';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        ism_interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'predict_variants':
+                    endpoint = '/predict_variants';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        variants: [{
+                            chromosome: document.getElementById('chromosome').value,
+                            position: parseInt(document.getElementById('position').value),
+                            reference_bases: document.getElementById('referenceBases').value,
+                            alternate_bases: document.getElementById('alternateBases').value
+                        }],
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'score_variants':
+                    endpoint = '/score_variants';
+                    requestData = {
+                        interval: {
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        },
+                        variants: [{
+                            chromosome: document.getElementById('chromosome').value,
+                            position: parseInt(document.getElementById('position').value),
+                            reference_bases: document.getElementById('referenceBases').value,
+                            alternate_bases: document.getElementById('alternateBases').value
+                        }],
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'predict_intervals':
+                    endpoint = '/predict_intervals';
+                    requestData = {
+                        intervals: [{
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        }],
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'score_intervals':
+                    endpoint = '/score_intervals';
+                    requestData = {
+                        intervals: [{
+                            chromosome: document.getElementById('chromosome').value,
+                            start: parseInt(document.getElementById('start').value),
+                            end: parseInt(document.getElementById('end').value)
+                        }],
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'predict_sequences':
+                    endpoint = '/predict_sequences';
+                    requestData = {
+                        sequences: ['ATCGATCGATCG'],
+                        output_type: parseInt(document.getElementById('outputType').value)
+                    };
+                    break;
+                case 'metadata':
+                    endpoint = '/metadata';
+                    requestData = {
+                        organism: 1
+                    };
+                    break;
+            }
+
+            fetch(`http://localhost:8000${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultHtml = `
+                    <div class="success">
+                        <h4>Prediction Successful!</h4>
+                `;
+                
+                // Display plot image if available
+                if (data.plot_image) {
+                    resultHtml += `
+                        <div class="plot-section">
+                            <h5>📊 Prediction Visualization</h5>
+                            <img src="data:image/png;base64,${data.plot_image}" 
+                                 alt="AlphaGenome Prediction Plot" 
+                                 style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; margin: 10px 0;">
+                            <p><small>Generated plot showing reference vs alternate variant predictions</small></p>
+                        </div>
+                    `;
+                }
+                
+                // Display JSON data
+                resultHtml += `
+                        <div class="data-section">
+                            <h5>📋 Prediction Data</h5>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+                
+                resultDiv.innerHTML = resultHtml;
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>Prediction Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Tab switching
+        function showTab(tabName, clickedElement) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            }
+        }
+
+        // Parse ontology terms from input
+        function getOntologyTerms() {
+            const input = document.getElementById('ontologyTerms').value.trim();
+            if (!input) {
+                return [];
+            }
+            
+            const terms = [];
+            const termStrings = input.split(',').map(s => s.trim()).filter(s => s);
+            
+            termStrings.forEach(termString => {
+                const match = termString.match(/^([A-Z]+):(\d+)$/);
+                if (match) {
+                    const [, type, id] = match;
+                    const typeMap = {
+                        'GO': 1,
+                        'UBERON': 2,
+                        'CL': 3,
+                        'CHEBI': 4
+                    };
+                    
+                    if (typeMap[type]) {
+                        terms.push({
+                            ontology_type: typeMap[type],
+                            id: parseInt(id)
+                        });
+                    }
+                }
+            });
+            
+            return terms;
+        }
+        
+        // Load API Key on page load
+        window.onload = function() {
+            loadApiKey();
+        };
+    </script>
+</body>
+</html>

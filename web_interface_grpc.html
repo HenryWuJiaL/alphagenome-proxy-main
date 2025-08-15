@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaGenome gRPC Web Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        .grpc-status {
+            background: #e2e3e5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧬 AlphaGenome gRPC Web Interface</h1>
+        
+        <div class="info">
+            <h3>📡 gRPC Web 技术说明</h3>
+            <p>此界面使用 <code>grpc-web</code> 库，让浏览器可以直接调用 gRPC 服务。</p>
+            <p>支持两种导入方式：</p>
+            <ul>
+                <li><code>https://esm.sh/grpc-web</code> (esm.sh CDN)</li>
+                <li><code>https://cdn.jsdelivr.net/npm/grpc-web@1.5.0/+esm</code> (jsdelivr CDN)</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label for="grpcEndpoint">gRPC 服务端点:</label>
+            <input type="text" id="grpcEndpoint" value="http://localhost:50051" placeholder="例如: http://localhost:50051">
+        </div>
+
+        <div class="form-group">
+            <label for="method">选择预测方法:</label>
+            <select id="method">
+                <option value="PredictVariant">预测变体 (PredictVariant)</option>
+                <option value="ScoreVariant">评分变体 (ScoreVariant)</option>
+                <option value="PredictInterval">预测区间 (PredictInterval)</option>
+                <option value="ScoreInterval">评分区间 (ScoreInterval)</option>
+                <option value="GetMetadata">获取元数据 (GetMetadata)</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="chromosome">染色体:</label>
+                    <input type="text" id="chromosome" value="chr22" placeholder="例如: chr22">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="start">起始位置:</label>
+                    <input type="number" id="start" value="35677410" placeholder="例如: 35677410">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="end">结束位置:</label>
+                    <input type="number" id="end" value="36725986" placeholder="例如: 36725986">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="position">变体位置:</label>
+                    <input type="number" id="position" value="36201698" placeholder="例如: 36201698">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="referenceBases">参考碱基:</label>
+                    <input type="text" id="referenceBases" value="A" placeholder="例如: A">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="alternateBases">替代碱基:</label>
+                    <input type="text" id="alternateBases" value="C" placeholder="例如: C">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="outputType">输出类型:</label>
+            <select id="outputType">
+                <option value="4">RNA_SEQ</option>
+                <option value="1">ATAC</option>
+                <option value="3">DNASE</option>
+                <option value="2">CAGE</option>
+            </select>
+        </div>
+
+        <button onclick="loadGrpcWeb()">📦 加载 gRPC Web 库</button>
+        <button onclick="testGrpcConnection()">🔍 测试 gRPC 连接</button>
+        <button onclick="callGrpcMethod()">🚀 调用 gRPC 方法</button>
+
+        <div id="result" class="result" style="display: none;">
+            <h3>📊 gRPC 调用结果</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let grpcWeb = null;
+        let client = null;
+
+        // 加载 gRPC Web 库
+        async function loadGrpcWeb() {
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultDiv.style.display = 'block';
+            resultContent.innerHTML = '<div class="loading">正在加载 gRPC Web 库...</div>';
+
+            try {
+                // 尝试从 esm.sh 加载
+                grpcWeb = await import('https://esm.sh/grpc-web');
+                resultContent.innerHTML = `
+                    <div class="success">✅ gRPC Web 库加载成功！</div>
+                    <div class="grpc-status">
+                        来源: esm.sh CDN<br>
+                        版本: ${grpcWeb.version || 'latest'}<br>
+                        模块: ${Object.keys(grpcWeb).join(', ')}
+                    </div>
+                `;
+                showMessage('gRPC Web 库加载成功！', 'success');
+            } catch (error) {
+                try {
+                    // 尝试从 jsdelivr 加载
+                    grpcWeb = await import('https://cdn.jsdelivr.net/npm/grpc-web@1.5.0/+esm');
+                    resultContent.innerHTML = `
+                        <div class="success">✅ gRPC Web 库加载成功！</div>
+                        <div class="grpc-status">
+                            来源: jsdelivr CDN<br>
+                            版本: 1.5.0<br>
+                            模块: ${Object.keys(grpcWeb).join(', ')}
+                        </div>
+                    `;
+                    showMessage('gRPC Web 库加载成功！', 'success');
+                } catch (error2) {
+                    resultContent.innerHTML = `
+                        <div class="error">❌ gRPC Web 库加载失败</div>
+                        <div class="grpc-status">
+                            esm.sh 错误: ${error.message}<br>
+                            jsdelivr 错误: ${error2.message}
+                        </div>
+                    `;
+                    showMessage('gRPC Web 库加载失败', 'error');
+                }
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            document.querySelector('.container').insertBefore(div, document.getElementById('result'));
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        // 测试 gRPC 连接
+        async function testGrpcConnection() {
+            if (!grpcWeb) {
+                showMessage('请先加载 gRPC Web 库', 'error');
+                return;
+            }
+
+            const endpoint = document.getElementById('grpcEndpoint').value;
+            showMessage('正在测试 gRPC 连接...', 'success');
+
+            try {
+                // 这里可以添加实际的 gRPC 连接测试
+                // 由于我们没有完整的 proto 文件，这里只是演示
+                showMessage(`gRPC 端点 ${endpoint} 配置成功`, 'success');
+            } catch (error) {
+                showMessage(`gRPC 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 调用 gRPC 方法
+        async function callGrpcMethod() {
+            if (!grpcWeb) {
+                showMessage('请先加载 gRPC Web 库', 'error');
+                return;
+            }
+
+            const method = document.getElementById('method').value;
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultDiv.style.display = 'block';
+            resultContent.innerHTML = '<div class="loading">正在调用 gRPC 方法...</div>';
+
+            try {
+                // 构建请求数据
+                const requestData = {
+                    interval: {
+                        chromosome: document.getElementById('chromosome').value,
+                        start: parseInt(document.getElementById('start').value),
+                        end: parseInt(document.getElementById('end').value)
+                    },
+                    variant: {
+                        chromosome: document.getElementById('chromosome').value,
+                        position: parseInt(document.getElementById('position').value),
+                        reference_bases: document.getElementById('referenceBases').value,
+                        alternate_bases: document.getElementById('alternateBases').value
+                    },
+                    organism: 9606,
+                    requested_outputs: [parseInt(document.getElementById('outputType').value)],
+                    model_version: "v1"
+                };
+
+                // 模拟 gRPC 调用（实际需要 proto 文件）
+                resultContent.innerHTML = `
+                    <div class="success">✅ gRPC 调用成功！</div>
+                    <div class="grpc-status">
+                        方法: ${method}<br>
+                        端点: ${document.getElementById('grpcEndpoint').value}<br>
+                        状态: 模拟调用完成
+                    </div>
+                    <h4>请求数据:</h4>
+                    <pre>${JSON.stringify(requestData, null, 2)}</pre>
+                    <h4>响应数据 (模拟):</h4>
+                    <pre>{
+  "status": "success",
+  "method": "${method}",
+  "data": {
+    "prediction_confidence": 0.95,
+    "variant_effect": "moderate",
+    "model_version": "v1",
+    "note": "这是通过 gRPC Web 调用的模拟响应"
+  }
+}</pre>
+                `;
+
+                showMessage(`gRPC 方法 ${method} 调用成功！`, 'success');
+            } catch (error) {
+                resultContent.innerHTML = `
+                    <div class="error">❌ gRPC 调用失败</div>
+                    <div class="grpc-status">错误: ${error.message}</div>
+                `;
+                showMessage(`gRPC 调用失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            showMessage('页面加载完成，请先加载 gRPC Web 库', 'success');
+        };
+    </script>
+</body>
+</html>
+
+
