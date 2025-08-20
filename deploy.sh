@@ -46,28 +46,30 @@ sleep 10
 
 # Check service health
 echo "Checking service health..."
-if curl -f http://localhost:8000/docs > /dev/null 2>&1; then
-    echo "[SUCCESS] JSON Service is running on port 8000"
+if curl -f http://localhost/health > /dev/null 2>&1; then
+    echo "[SUCCESS] AlphaGenome Service is running and healthy"
 else
-    echo "[FAILED] JSON Service failed to start"
+    echo "[FAILED] AlphaGenome Service failed to start"
     docker-compose logs
     exit 1
 fi
 
-# Check gRPC service
-if nc -z localhost 50051 2>/dev/null; then
-    echo "[SUCCESS] gRPC Proxy is running on port 50051"
+# Check API endpoint
+if curl -f http://localhost/api/docs > /dev/null 2>&1; then
+    echo "[SUCCESS] API documentation is accessible"
 else
-    echo "[FAILED] gRPC Proxy failed to start"
+    echo "[FAILED] API documentation is not accessible"
     docker-compose logs
     exit 1
 fi
 
 echo ""
-    echo "[SUCCESS] Deployment successful!"
+echo "[SUCCESS] Deployment successful!"
 echo "Services are running on:"
-echo "  - JSON Service: http://localhost:8000"
-echo "  - gRPC Proxy: localhost:50051"
+echo "  - Web Interface: http://localhost"
+echo "  - API Service: http://localhost/api"
+echo "  - API Documentation: http://localhost/api/docs"
+echo "  - Health Check: http://localhost/health"
 echo ""
 echo "To view logs: docker-compose logs -f"
 echo "To stop services: docker-compose down"

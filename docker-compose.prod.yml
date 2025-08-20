@@ -4,11 +4,12 @@ services:
   # AlphaGenome API Service
   alphagenome-proxy:
     build: .
-    container_name: alphagenome-api
+    container_name: alphagenome-api-prod
     environment:
       - ALPHAGENOME_API_KEY=${ALPHAGENOME_API_KEY}
       - API_KEY_HEADER=Authorization
       - API_KEY_PREFIX=Bearer
+      - LOG_LEVEL=INFO
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -20,23 +21,55 @@ services:
       - alphagenome-network
     volumes:
       - ./web_interface_english.html:/app/web_interface_english.html:ro
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Nginx Reverse Proxy and Web Server
   nginx:
     image: nginx:alpine
-    container_name: alphagenome-nginx
+    container_name: alphagenome-nginx-prod
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./web_interface_english.html:/usr/share/nginx/html/web_interface_english.html:ro
+      # SSL certificates (uncomment when you have them)
+      # - ./ssl/cert.pem:/etc/nginx/ssl/cert.pem:ro
+      # - ./ssl/key.pem:/etc/nginx/ssl/key.pem:ro
     depends_on:
       - alphagenome-proxy
     restart: unless-stopped
     networks:
       - alphagenome-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   alphagenome-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

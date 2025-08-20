@@ -196,15 +196,10 @@
                 <label for="method">Select Prediction Method:</label>
                 <select id="method">
                     <option value="predict_variant">Predict Variant (predict_variant)</option>
-                    <option value="predict_variants">Predict Variants (predict_variants)</option>
                     <option value="score_variant">Score Variant (score_variant)</option>
-                    <option value="score_variants">Score Variants (score_variants)</option>
                     <option value="predict_interval">Predict Interval (predict_interval)</option>
-                    <option value="predict_intervals">Predict Intervals (predict_intervals)</option>
                     <option value="score_interval">Score Interval (score_interval)</option>
-                    <option value="score_intervals">Score Intervals (score_intervals)</option>
                     <option value="predict_sequence">Predict Sequence (predict_sequence)</option>
-                    <option value="predict_sequences">Predict Sequences (predict_sequences)</option>
                     <option value="score_ism_variant">Score ISM Variant (score_ism_variants)</option>
                     <option value="metadata">Get Metadata (output_metadata)</option>
                 </select>
@@ -451,69 +446,7 @@
                         output_type: parseInt(document.getElementById('outputType').value)
                     };
                     break;
-                case 'predict_variants':
-                    endpoint = '/predict_variants';
-                    requestData = {
-                        interval: {
-                            chromosome: document.getElementById('chromosome').value,
-                            start: parseInt(document.getElementById('start').value),
-                            end: parseInt(document.getElementById('end').value)
-                        },
-                        variants: [{
-                            chromosome: document.getElementById('chromosome').value,
-                            position: parseInt(document.getElementById('position').value),
-                            reference_bases: document.getElementById('referenceBases').value,
-                            alternate_bases: document.getElementById('alternateBases').value
-                        }],
-                        output_type: parseInt(document.getElementById('outputType').value)
-                    };
-                    break;
-                case 'score_variants':
-                    endpoint = '/score_variants';
-                    requestData = {
-                        interval: {
-                            chromosome: document.getElementById('chromosome').value,
-                            start: parseInt(document.getElementById('start').value),
-                            end: parseInt(document.getElementById('end').value)
-                        },
-                        variants: [{
-                            chromosome: document.getElementById('chromosome').value,
-                            position: parseInt(document.getElementById('position').value),
-                            reference_bases: document.getElementById('referenceBases').value,
-                            alternate_bases: document.getElementById('alternateBases').value
-                        }],
-                        output_type: parseInt(document.getElementById('outputType').value)
-                    };
-                    break;
-                case 'predict_intervals':
-                    endpoint = '/predict_intervals';
-                    requestData = {
-                        intervals: [{
-                            chromosome: document.getElementById('chromosome').value,
-                            start: parseInt(document.getElementById('start').value),
-                            end: parseInt(document.getElementById('end').value)
-                        }],
-                        output_type: parseInt(document.getElementById('outputType').value)
-                    };
-                    break;
-                case 'score_intervals':
-                    endpoint = '/score_intervals';
-                    requestData = {
-                        intervals: [{
-                            chromosome: document.getElementById('chromosome').value,
-                            start: parseInt(document.getElementById('start').value),
-                            end: parseInt(document.getElementById('end').value)
-                        }],
-                        output_type: parseInt(document.getElementById('outputType').value)
-                    };
-                    break;
-                case 'predict_sequences':
-                    endpoint = '/predict_sequences';
-                    requestData = {
-                        sequences: ['ATCGATCGATCG'],
-                        output_type: parseInt(document.getElementById('outputType').value)
-                    };
-                    break;
+
                 case 'metadata':
                     endpoint = '/metadata';
                     requestData = {
